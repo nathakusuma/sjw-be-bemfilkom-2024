@@ -23,21 +23,9 @@ func Connect() *gorm.DB {
 		log.Fatalln(err)
 	}
 
-	if err := AutoMigrate(db); err != nil {
+	if err := MigrateTables(db); err != nil {
 		log.Fatalln(err)
 	}
-
-	defer func() {
-		sqlDB, err := db.DB()
-		if err != nil {
-			log.Fatalln(err)
-			return
-		}
-		if err := sqlDB.Close(); err != nil {
-			log.Fatalln(err)
-			return
-		}
-	}()
 
 	return db
 }
