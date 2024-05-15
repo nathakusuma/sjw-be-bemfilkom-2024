@@ -42,8 +42,13 @@ func main() {
 		ctx.JSON(200, gin.H{"message": "you are admin"})
 	})
 
+	admin := v1.Group("/admin")
+	admin.Use(middle.Authenticate, middle.RequireRole("admin"))
+	admin.GET("/hopes", hopeHandler.GetLazyLoad(true))
+
 	hopes := v1.Group("/hopes")
 	hopes.POST("/", hopeHandler.Create)
+	hopes.GET("/", hopeHandler.GetLazyLoad(false))
 
 	if err := router.Run(":" + os.Getenv("PORT")); err != nil {
 		log.Fatalln(err)

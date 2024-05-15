@@ -13,6 +13,7 @@ type hopeCornerHandler struct {
 
 type IHopeCornerHandler interface {
 	Create(ctx *gin.Context)
+	GetLazyLoad(isAdmin bool) gin.HandlerFunc
 }
 
 func NewHopeCornerHandler(service service.IHopeCornerService) IHopeCornerHandler {
@@ -28,4 +29,15 @@ func (h *hopeCornerHandler) Create(ctx *gin.Context) {
 
 	res := h.s.Create(req.Content)
 	res.Send(ctx)
+}
+
+func (h *hopeCornerHandler) GetLazyLoad(isAdmin bool) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		afterCreatedAt := ctx.Query("after_created_at")
+		afterId := ctx.Query("after_id")
+		limit := ctx.Query("limit")
+
+		res := h.s.GetLazyLoad(afterCreatedAt, afterId, limit, isAdmin)
+		res.Send(ctx)
+	}
 }
