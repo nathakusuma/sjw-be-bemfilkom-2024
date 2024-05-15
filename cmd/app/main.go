@@ -26,6 +26,10 @@ func main() {
 	userService := service.NewUserService(userRepo, jwtAuth)
 	authHandler := rest.NewAuthHandler(userService)
 
+	hopeRepo := repository.NewHopeCornerRepository(db)
+	hopeService := service.NewHopeCornerService(hopeRepo)
+	hopeHandler := rest.NewHopeCornerHandler(hopeService)
+
 	gin.SetMode(os.Getenv("GIN_MODE"))
 
 	router := gin.Default()
@@ -37,6 +41,9 @@ func main() {
 	auth.GET("/check/admin", middle.Authenticate, middle.RequireRole("admin"), func(ctx *gin.Context) {
 		ctx.JSON(200, gin.H{"message": "you are admin"})
 	})
+
+	hopes := v1.Group("/hopes")
+	hopes.POST("/", hopeHandler.Create)
 
 	if err := router.Run(":" + os.Getenv("PORT")); err != nil {
 		log.Fatalln(err)
