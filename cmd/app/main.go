@@ -46,7 +46,8 @@ func main() {
 	admin.Use(middle.Authenticate, middle.RequireRole("admin"))
 	admin.GET("/hopes/:id", hopeHandler.FindByID(true))
 	admin.GET("/hopes", hopeHandler.FindByLazyLoad(true))
-	admin.PATCH("/hopes/:id", middle.Authenticate, middle.RequireRole("admin"), hopeHandler.Update)
+	admin.PATCH("/hopes/:id", hopeHandler.Update)
+	admin.DELETE("/hopes/:id", hopeHandler.Delete)
 
 	hopes := v1.Group("/hopes")
 	hopes.POST("/", hopeHandler.Create)

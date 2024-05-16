@@ -20,6 +20,7 @@ type IHopeCornerService interface {
 	FindByLazyLoad(afterCreatedAt, afterId, limitStr string, isAdmin bool) response.ApiResponse
 	FindByID(idStr string, isAdmin bool) response.ApiResponse
 	Update(idStr string, req model.UpdateHopeRequest) response.ApiResponse
+	Delete(idStr string) response.ApiResponse
 }
 
 func NewHopeCornerService(r repository.IHopeCornerRepository) IHopeCornerService {
@@ -149,4 +150,17 @@ func (s *hopeCornerService) Update(idStr string, req model.UpdateHopeRequest) re
 	}
 
 	return response.NewApiResponse(201, "hope updated", nil)
+}
+
+func (s *hopeCornerService) Delete(idStr string) response.ApiResponse {
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		return response.NewApiResponse(400, "invalid id", err)
+	}
+
+	if err := s.r.Delete(id); err != nil {
+		return response.NewApiResponse(500, "fail to delete hope", err)
+	}
+
+	return response.NewApiResponse(200, "hope deleted", nil)
 }

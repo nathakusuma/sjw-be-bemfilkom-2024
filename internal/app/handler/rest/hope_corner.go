@@ -16,6 +16,7 @@ type IHopeCornerHandler interface {
 	FindByLazyLoad(isAdmin bool) gin.HandlerFunc
 	FindByID(isAdmin bool) gin.HandlerFunc
 	Update(ctx *gin.Context)
+	Delete(ctx *gin.Context)
 }
 
 func NewHopeCornerHandler(service service.IHopeCornerService) IHopeCornerHandler {
@@ -62,5 +63,12 @@ func (h *hopeCornerHandler) Update(ctx *gin.Context) {
 	}
 
 	res := h.s.Update(id, req)
+	res.Send(ctx)
+}
+
+func (h *hopeCornerHandler) Delete(ctx *gin.Context) {
+	id := ctx.Param("id")
+
+	res := h.s.Delete(id)
 	res.Send(ctx)
 }

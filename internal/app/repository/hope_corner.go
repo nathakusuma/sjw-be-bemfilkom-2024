@@ -12,6 +12,7 @@ type IHopeCornerRepository interface {
 	FindByLazyLoad(afterCreatedAt time.Time, afterId uuid.UUID, limit int, isAdmin bool) ([]entity.Hope, error)
 	FindByID(id uuid.UUID) (entity.Hope, error)
 	Update(hope entity.Hope) error
+	Delete(id uuid.UUID) error
 }
 
 type hopeCornerRepository struct {
@@ -68,4 +69,8 @@ func (r *hopeCornerRepository) FindByID(id uuid.UUID) (entity.Hope, error) {
 
 func (r *hopeCornerRepository) Update(hope entity.Hope) error {
 	return r.db.Model(&entity.Hope{}).Where("id = ?", hope.ID).Updates(&hope).Error
+}
+
+func (r *hopeCornerRepository) Delete(id uuid.UUID) error {
+	return r.db.Delete(&entity.Hope{}, id).Error
 }
