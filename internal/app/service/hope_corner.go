@@ -1,12 +1,14 @@
 package service
 
 import (
+	"errors"
 	"github.com/bem-filkom/sjw-be-2024/internal/app/repository"
 	"github.com/bem-filkom/sjw-be-2024/internal/pkg/entity"
 	"github.com/bem-filkom/sjw-be-2024/internal/pkg/model"
 	"github.com/bem-filkom/sjw-be-2024/internal/pkg/response"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 	"strconv"
 	"time"
 )
@@ -109,7 +111,10 @@ func (s *hopeCornerService) FindByID(idStr string, isAdmin bool) response.ApiRes
 
 	hopeRaw, err := s.r.FindByID(id)
 	if err != nil {
-		return response.NewApiResponse(404, "hope not found", err)
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return response.NewApiResponse(404, "hope not found", err)
+		}
+		return response.NewApiResponse(500, "fail to get hope", err)
 	}
 
 	if !isAdmin && hopeRaw.IsApproved.Bool == false {
