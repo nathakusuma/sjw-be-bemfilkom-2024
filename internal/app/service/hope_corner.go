@@ -57,32 +57,31 @@ func (s *hopeCornerService) FindByLazyLoad(afterCreatedAt, afterId, limitStr str
 		return response.NewApiResponse(400, "after_created_at and after_id must be provided together", nil)
 	}
 
+	var hopesRaw []entity.Hope
+
 	if !isAfterCreateAtExist && !isAfterIdExist {
-		hopes, err := s.r.FindByLazyLoad(time.Time{}, uuid.Nil, limit, isAdmin)
+		hopesRaw, err = s.r.FindByLazyLoad(time.Time{}, uuid.Nil, limit, isAdmin)
 		if err != nil {
 			return response.NewApiResponse(500, "fail to get hopes", err)
 		}
+	} else {
+		afterTime, err := time.Parse(time.RFC3339, afterCreatedAt)
+		if err != nil {
+			return response.NewApiResponse(400, "invalid time format", err)
+		}
 
-		return response.NewApiResponse(200, "hopes retrieved", gin.H{"hopes": hopes})
+		afterUuid, err := uuid.Parse(afterId)
+		if err != nil {
+			return response.NewApiResponse(400, "invalid uuid format", err)
+		}
+
+		hopesRaw, err = s.r.FindByLazyLoad(afterTime, afterUuid, limit, isAdmin)
+		if err != nil {
+			return response.NewApiResponse(500, "fail to get hopes", err)
+		}
 	}
 
-	afterTime, err := time.Parse(time.RFC3339, afterCreatedAt)
-	if err != nil {
-		return response.NewApiResponse(400, "invalid time format", err)
-	}
-
-	afterUuid, err := uuid.Parse(afterId)
-	if err != nil {
-		return response.NewApiResponse(400, "invalid uuid format", err)
-	}
-
-	hopesRaw, err := s.r.FindByLazyLoad(afterTime, afterUuid, limit, isAdmin)
-	if err != nil {
-		return response.NewApiResponse(500, "fail to get hopes", err)
-	}
-
-	var hopes []any
-	hopes = make([]any, len(hopesRaw))
+	hopes := make([]any, len(hopesRaw))
 	for i, hope := range hopesRaw {
 		res := model.GetHopeResponse{
 			ID:      hope.ID,
@@ -93,9 +92,8 @@ func (s *hopeCornerService) FindByLazyLoad(afterCreatedAt, afterId, limitStr str
 				GetHopeResponse: res,
 				IsApproved:      hope.IsApproved,
 			}
-		} else {
-			hopes[i] = res
 		}
+		hopes[i] = res
 	}
 
 	return response.NewApiResponse(200, "hopes retrieved", gin.H{"hopes": hopes})
