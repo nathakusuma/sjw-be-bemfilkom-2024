@@ -10,6 +10,7 @@ import (
 type IHopeCornerRepository interface {
 	Create(content string) (uuid.UUID, error)
 	GetLazyLoad(afterCreatedAt time.Time, afterId uuid.UUID, limit int, isAdmin bool) ([]entity.Hope, error)
+	Update(hope entity.Hope) error
 }
 
 type hopeCornerRepository struct {
@@ -54,4 +55,8 @@ func (r *hopeCornerRepository) GetLazyLoad(afterCreatedAt time.Time, afterId uui
 	}
 
 	return hopes, nil
+}
+
+func (r *hopeCornerRepository) Update(hope entity.Hope) error {
+	return r.db.Model(&entity.Hope{}).Where("id = ?", hope.ID).Updates(&hope).Error
 }

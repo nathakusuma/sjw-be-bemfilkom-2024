@@ -14,6 +14,7 @@ type hopeCornerHandler struct {
 type IHopeCornerHandler interface {
 	Create(ctx *gin.Context)
 	GetLazyLoad(isAdmin bool) gin.HandlerFunc
+	Update(ctx *gin.Context)
 }
 
 func NewHopeCornerHandler(service service.IHopeCornerService) IHopeCornerHandler {
@@ -40,4 +41,16 @@ func (h *hopeCornerHandler) GetLazyLoad(isAdmin bool) gin.HandlerFunc {
 		res := h.s.GetLazyLoad(afterCreatedAt, afterId, limit, isAdmin)
 		res.Send(ctx)
 	}
+}
+
+func (h *hopeCornerHandler) Update(ctx *gin.Context) {
+	id := ctx.Param("id")
+	var req model.UpdateHopeRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		response.NewApiResponse(400, "invalid request body", err).Send(ctx)
+		return
+	}
+
+	res := h.s.Update(id, req)
+	res.Send(ctx)
 }

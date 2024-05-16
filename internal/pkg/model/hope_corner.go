@@ -27,3 +27,8 @@ type GetHopeAsAdminResponse struct {
 	GetHopeResponse
 	IsApproved sql.NullBool `json:"is_approved"`
 }
+
+type UpdateHopeRequest struct {
+	Content    string       `json:"content" binding:"omitempty,max=2000,min=1"`
+	IsApproved sql.NullBool `json:"is_approved" binding:"omitempty"`
+}

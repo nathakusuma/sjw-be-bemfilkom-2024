@@ -2,6 +2,7 @@ package service
 
 import (
 	"github.com/bem-filkom/sjw-be-2024/internal/app/repository"
+	"github.com/bem-filkom/sjw-be-2024/internal/pkg/entity"
 	"github.com/bem-filkom/sjw-be-2024/internal/pkg/model"
 	"github.com/bem-filkom/sjw-be-2024/internal/pkg/response"
 	"github.com/gin-gonic/gin"
@@ -17,6 +18,7 @@ type hopeCornerService struct {
 type IHopeCornerService interface {
 	Create(content string) response.ApiResponse
 	GetLazyLoad(afterCreatedAt, afterId, limitStr string, isAdmin bool) response.ApiResponse
+	Update(idStr string, req model.UpdateHopeRequest) response.ApiResponse
 }
 
 func NewHopeCornerService(r repository.IHopeCornerRepository) IHopeCornerService {
@@ -97,4 +99,23 @@ func (s *hopeCornerService) GetLazyLoad(afterCreatedAt, afterId, limitStr string
 	}
 
 	return response.NewApiResponse(200, "hopes retrieved", gin.H{"hopes": hopes})
+}
+
+func (s *hopeCornerService) Update(idStr string, req model.UpdateHopeRequest) response.ApiResponse {
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		return response.NewApiResponse(400, "invalid id", err)
+	}
+
+	update := entity.Hope{
+		ID:         id,
+		Content:    req.Content,
+		IsApproved: req.IsApproved,
+	}
+
+	if err := s.r.Update(update); err != nil {
+		return response.NewApiResponse(500, "fail to update hope", err)
+	}
+
+	return response.NewApiResponse(201, "hope updated", nil)
 }
