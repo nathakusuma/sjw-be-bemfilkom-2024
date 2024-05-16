@@ -9,7 +9,7 @@ import (
 
 type IHopeCornerRepository interface {
 	Create(content string) (uuid.UUID, error)
-	GetLazyLoad(afterCreatedAt time.Time, afterId uuid.UUID, limit int, isAdmin bool) ([]entity.Hope, error)
+	FindByLazyLoad(afterCreatedAt time.Time, afterId uuid.UUID, limit int, isAdmin bool) ([]entity.Hope, error)
 	Update(hope entity.Hope) error
 }
 
@@ -33,7 +33,7 @@ func (r *hopeCornerRepository) Create(content string) (uuid.UUID, error) {
 	return hope.ID, nil
 }
 
-func (r *hopeCornerRepository) GetLazyLoad(afterCreatedAt time.Time, afterId uuid.UUID, limit int, isAdmin bool) ([]entity.Hope, error) {
+func (r *hopeCornerRepository) FindByLazyLoad(afterCreatedAt time.Time, afterId uuid.UUID, limit int, isAdmin bool) ([]entity.Hope, error) {
 	var hopes []entity.Hope
 
 	tx := r.db

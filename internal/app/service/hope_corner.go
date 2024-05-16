@@ -17,7 +17,7 @@ type hopeCornerService struct {
 
 type IHopeCornerService interface {
 	Create(content string) response.ApiResponse
-	GetLazyLoad(afterCreatedAt, afterId, limitStr string, isAdmin bool) response.ApiResponse
+	FindByLazyLoad(afterCreatedAt, afterId, limitStr string, isAdmin bool) response.ApiResponse
 	Update(idStr string, req model.UpdateHopeRequest) response.ApiResponse
 }
 
@@ -34,7 +34,7 @@ func (s *hopeCornerService) Create(content string) response.ApiResponse {
 	return response.NewApiResponse(201, "hope created", gin.H{"id": id})
 }
 
-func (s *hopeCornerService) GetLazyLoad(afterCreatedAt, afterId, limitStr string, isAdmin bool) response.ApiResponse {
+func (s *hopeCornerService) FindByLazyLoad(afterCreatedAt, afterId, limitStr string, isAdmin bool) response.ApiResponse {
 	var MAX_FETCH = 10
 	if isAdmin {
 		MAX_FETCH = 20
@@ -58,7 +58,7 @@ func (s *hopeCornerService) GetLazyLoad(afterCreatedAt, afterId, limitStr string
 	}
 
 	if !isAfterCreateAtExist && !isAfterIdExist {
-		hopes, err := s.r.GetLazyLoad(time.Time{}, uuid.Nil, limit, isAdmin)
+		hopes, err := s.r.FindByLazyLoad(time.Time{}, uuid.Nil, limit, isAdmin)
 		if err != nil {
 			return response.NewApiResponse(500, "fail to get hopes", err)
 		}
@@ -76,7 +76,7 @@ func (s *hopeCornerService) GetLazyLoad(afterCreatedAt, afterId, limitStr string
 		return response.NewApiResponse(400, "invalid uuid format", err)
 	}
 
-	hopesRaw, err := s.r.GetLazyLoad(afterTime, afterUuid, limit, isAdmin)
+	hopesRaw, err := s.r.FindByLazyLoad(afterTime, afterUuid, limit, isAdmin)
 	if err != nil {
 		return response.NewApiResponse(500, "fail to get hopes", err)
 	}

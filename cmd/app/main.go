@@ -44,12 +44,12 @@ func main() {
 
 	admin := v1.Group("/admin")
 	admin.Use(middle.Authenticate, middle.RequireRole("admin"))
-	admin.GET("/hopes", hopeHandler.GetLazyLoad(true))
+	admin.GET("/hopes", hopeHandler.FindByLazyLoad(true))
 	admin.PATCH("/hopes/:id", middle.Authenticate, middle.RequireRole("admin"), hopeHandler.Update)
 
 	hopes := v1.Group("/hopes")
 	hopes.POST("/", hopeHandler.Create)
-	hopes.GET("/", hopeHandler.GetLazyLoad(false))
+	hopes.GET("/", hopeHandler.FindByLazyLoad(false))
 
 	if err := router.Run(":" + os.Getenv("PORT")); err != nil {
 		log.Fatalln(err)
