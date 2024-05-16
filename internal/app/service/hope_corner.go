@@ -83,14 +83,14 @@ func (s *hopeCornerService) FindByLazyLoad(afterCreatedAt, afterId, limitStr str
 
 	hopes := make([]any, len(hopesRaw))
 	for i, hope := range hopesRaw {
-		res := model.GetHopeResponse{
+		res := model.FindHopeResponse{
 			ID:      hope.ID,
 			Content: hope.Content,
 		}
 		if isAdmin {
-			hopes[i] = model.GetHopeAsAdminResponse{
-				GetHopeResponse: res,
-				IsApproved:      hope.IsApproved,
+			hopes[i] = model.FindHopeAsAdminResponse{
+				FindHopeResponse: res,
+				IsApproved:       hope.IsApproved,
 			}
 		}
 		hopes[i] = res

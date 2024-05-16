@@ -13,18 +13,18 @@ type CreateHopeResponse struct {
 	ID uuid.UUID `json:"id"`
 }
 
-type GetHopesLazyLoadRequest struct {
+type FindHopesLazyLoadRequest struct {
 	AfterCreatedAt string `form:"after_created_at" binding:"required,rfc3339"`
 	AfterId        string `form:"after_id" binding:"required,uuid"`
 }
 
-type GetHopeResponse struct {
+type FindHopeResponse struct {
 	ID      uuid.UUID `json:"id"`
 	Content string    `json:"content"`
 }
 
-type GetHopeAsAdminResponse struct {
-	GetHopeResponse
+type FindHopeAsAdminResponse struct {
+	FindHopeResponse
 	IsApproved sql.NullBool `json:"is_approved"`
 }
 
