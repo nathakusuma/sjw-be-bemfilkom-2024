@@ -18,6 +18,7 @@ type hopeCornerService struct {
 type IHopeCornerService interface {
 	Create(content string) response.ApiResponse
 	FindByLazyLoad(afterCreatedAt, afterId, limitStr string, isAdmin bool) response.ApiResponse
+	FindByID(idStr string, isAdmin bool) response.ApiResponse
 	Update(idStr string, req model.UpdateHopeRequest) response.ApiResponse
 }
 
@@ -97,6 +98,38 @@ func (s *hopeCornerService) FindByLazyLoad(afterCreatedAt, afterId, limitStr str
 	}
 
 	return response.NewApiResponse(200, "hopes retrieved", gin.H{"hopes": hopes})
+}
+
+func (s *hopeCornerService) FindByID(idStr string, isAdmin bool) response.ApiResponse {
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		return response.NewApiResponse(400, "invalid id", err)
+	}
+
+	hopeRaw, err := s.r.FindByID(id)
+	if err != nil {
+		return response.NewApiResponse(404, "hope not found", err)
+	}
+
+	if !isAdmin && hopeRaw.IsApproved.Bool == false {
+		return response.NewApiResponse(403, "hope not approved yet", nil)
+	}
+
+	var hope any
+	res := model.FindHopeResponse{
+		ID:      hopeRaw.ID,
+		Content: hopeRaw.Content,
+	}
+	if isAdmin {
+		hope = model.FindHopeAsAdminResponse{
+			FindHopeResponse: res,
+			IsApproved:       hopeRaw.IsApproved,
+		}
+	} else {
+		hope = res
+	}
+
+	return response.NewApiResponse(200, "hope retrieved", gin.H{"hope": hope})
 }
 
 func (s *hopeCornerService) Update(idStr string, req model.UpdateHopeRequest) response.ApiResponse {

@@ -10,6 +10,7 @@ import (
 type IHopeCornerRepository interface {
 	Create(content string) (uuid.UUID, error)
 	FindByLazyLoad(afterCreatedAt time.Time, afterId uuid.UUID, limit int, isAdmin bool) ([]entity.Hope, error)
+	FindByID(id uuid.UUID) (entity.Hope, error)
 	Update(hope entity.Hope) error
 }
 
@@ -55,6 +56,14 @@ func (r *hopeCornerRepository) FindByLazyLoad(afterCreatedAt time.Time, afterId 
 	}
 
 	return hopes, nil
+}
+
+func (r *hopeCornerRepository) FindByID(id uuid.UUID) (entity.Hope, error) {
+	var hope entity.Hope
+	if err := r.db.Where("id = ?", id).First(&hope).Error; err != nil {
+		return hope, err
+	}
+	return hope, nil
 }
 
 func (r *hopeCornerRepository) Update(hope entity.Hope) error {

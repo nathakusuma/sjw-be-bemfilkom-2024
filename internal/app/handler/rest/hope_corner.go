@@ -14,6 +14,7 @@ type hopeCornerHandler struct {
 type IHopeCornerHandler interface {
 	Create(ctx *gin.Context)
 	FindByLazyLoad(isAdmin bool) gin.HandlerFunc
+	FindByID(isAdmin bool) gin.HandlerFunc
 	Update(ctx *gin.Context)
 }
 
@@ -39,6 +40,15 @@ func (h *hopeCornerHandler) FindByLazyLoad(isAdmin bool) gin.HandlerFunc {
 		limit := ctx.Query("limit")
 
 		res := h.s.FindByLazyLoad(afterCreatedAt, afterId, limit, isAdmin)
+		res.Send(ctx)
+	}
+}
+
+func (h *hopeCornerHandler) FindByID(isAdmin bool) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		id := ctx.Param("id")
+
+		res := h.s.FindByID(id, isAdmin)
 		res.Send(ctx)
 	}
 }
