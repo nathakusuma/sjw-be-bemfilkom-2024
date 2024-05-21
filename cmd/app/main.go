@@ -26,6 +26,10 @@ func main() {
 	userService := service.NewUserService(userRepo, jwtAuth)
 	authHandler := rest.NewAuthHandler(userService)
 
+	hopeRepo := repository.NewHopeCornerRepository(db)
+	hopeService := service.NewHopeCornerService(hopeRepo)
+	hopeHandler := rest.NewHopeCornerHandler(hopeService)
+
 	gin.SetMode(os.Getenv("GIN_MODE"))
 
 	router := gin.Default()
@@ -37,6 +41,18 @@ func main() {
 	auth.GET("/check/admin", middle.Authenticate, middle.RequireRole("admin"), func(ctx *gin.Context) {
 		ctx.JSON(200, gin.H{"message": "you are admin"})
 	})
+
+	admin := v1.Group("/admin")
+	admin.Use(middle.Authenticate, middle.RequireRole("admin"))
+	admin.GET("/hopes/:id", hopeHandler.FindByID(true))
+	admin.GET("/hopes", hopeHandler.FindByLazyLoad(true))
+	admin.PATCH("/hopes/:id", hopeHandler.Update)
+	admin.DELETE("/hopes/:id", hopeHandler.Delete)
+
+	hopes := v1.Group("/hopes")
+	hopes.POST("/", hopeHandler.Create)
+	hopes.GET("/:id", hopeHandler.FindByID(false))
+	hopes.GET("/", hopeHandler.FindByLazyLoad(false))
 
 	if err := router.Run(":" + os.Getenv("PORT")); err != nil {
 		log.Fatalln(err)

@@ -8,5 +8,6 @@ import (
 func MigrateTables(db *gorm.DB) error {
 	return db.AutoMigrate(
 		&entity.User{},
+		&entity.Hope{},
 	)
 }
