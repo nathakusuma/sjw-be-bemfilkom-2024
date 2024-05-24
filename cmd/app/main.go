@@ -33,9 +33,20 @@ func main() {
 	gin.SetMode(os.Getenv("GIN_MODE"))
 
 	router := gin.Default()
+	router.GET("/", func(ctx *gin.Context) {
+		ctx.Redirect(301, "/docs/v1/")
+	})
+
+	docs := router.Group("/docs")
+	docs.GET("/", func(ctx *gin.Context) {
+		ctx.Redirect(301, "/docs/v1/")
+	})
+	docs.GET("/v1.yaml", func(ctx *gin.Context) {
+		ctx.File("./docs/api/v1.yaml")
+	})
+	docs.Static("/v1", "./web/swagger-ui")
 
 	v1 := router.Group("/v1")
-
 	auth := v1.Group("/auth")
 	auth.POST("/login", authHandler.Login)
 	auth.GET("/check/admin", middle.Authenticate, middle.RequireRole("admin"), func(ctx *gin.Context) {
