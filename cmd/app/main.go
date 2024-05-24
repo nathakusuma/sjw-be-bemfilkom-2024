@@ -15,7 +15,7 @@ import (
 
 func main() {
 	if err := godotenv.Load(); err != nil {
-		log.Fatalln(err)
+		log.Println(err)
 	}
 
 	db := postgresql.Connect()
