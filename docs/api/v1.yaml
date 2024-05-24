@@ -43,7 +43,7 @@ paths:
               withNIM:
                 summary: NIM as username
                 value:
-                  username: 235150201111000
+                  username: "235150201111000"
                   password: very-secure-password
               withEmail:
                 summary: Email as username
