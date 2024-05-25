@@ -9,6 +9,7 @@ import (
 	"github.com/bem-filkom/sjw-be-2024/internal/pkg/jwt"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	"github.com/rs/cors"
 	"log"
 	"os"
 )
@@ -33,6 +34,17 @@ func main() {
 	gin.SetMode(os.Getenv("GIN_MODE"))
 
 	router := gin.Default()
+
+	corsMiddleware := cors.New(cors.Options{
+		AllowedOrigins: []string{"*"},
+		AllowedMethods: []string{"GET", "POST", "PATCH", "DELETE"},
+		AllowedHeaders: []string{"Content-Type", "Authorization"},
+	})
+
+	router.Use(func(ctx *gin.Context) {
+		corsMiddleware.HandlerFunc(ctx.Writer, ctx.Request)
+	})
+
 	router.GET("/", func(ctx *gin.Context) {
 		ctx.Redirect(301, "/docs/v1/")
 	})
