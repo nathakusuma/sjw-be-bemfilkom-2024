@@ -7,6 +7,7 @@ import (
 	"github.com/bem-filkom/sjw-be-2024/internal/app/service"
 	"github.com/bem-filkom/sjw-be-2024/internal/pkg/database/postgresql"
 	"github.com/bem-filkom/sjw-be-2024/internal/pkg/jwt"
+	"github.com/bem-filkom/sjw-be-2024/internal/pkg/model"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/rs/cors"
@@ -27,9 +28,9 @@ func main() {
 	userService := service.NewUserService(userRepo, jwtAuth)
 	authHandler := rest.NewAuthHandler(userService)
 
-	hopeRepo := repository.NewHopeCornerRepository(db)
-	hopeService := service.NewHopeCornerService(hopeRepo)
-	hopeHandler := rest.NewHopeCornerHandler(hopeService)
+	hopeWhisperRepo := repository.NewHopeWhisperRepository(db)
+	hopeWhisperService := service.NewHopeWhisperService(hopeWhisperRepo)
+	hopeWhisperHandler := rest.NewHopeWhisperHandler(hopeWhisperService)
 
 	gin.SetMode(os.Getenv("GIN_MODE"))
 
@@ -67,15 +68,26 @@ func main() {
 
 	admin := v1.Group("/admin")
 	admin.Use(middle.Authenticate, middle.RequireRole("admin"))
-	admin.GET("/hopes/:id", hopeHandler.FindByID(true))
-	admin.GET("/hopes", hopeHandler.FindByLazyLoad(true))
-	admin.PATCH("/hopes/:id", hopeHandler.Update)
-	admin.DELETE("/hopes/:id", hopeHandler.Delete)
+	// Admin Hope Corner
+	admin.GET("/hopes/:id", hopeWhisperHandler.FindByID(model.HopeCorner, true))
+	admin.GET("/hopes", hopeWhisperHandler.FindByLazyLoad(model.HopeCorner, true))
+	admin.PATCH("/hopes/:id", hopeWhisperHandler.Update(model.HopeCorner))
+	admin.DELETE("/hopes/:id", hopeWhisperHandler.Delete(model.HopeCorner))
+	// Admin Whisper Wall
+	admin.GET("/whispers/:id", hopeWhisperHandler.FindByID(model.WhisperWall, true))
+	admin.GET("/whispers", hopeWhisperHandler.FindByLazyLoad(model.WhisperWall, true))
+	admin.PATCH("/whispers/:id", hopeWhisperHandler.Update(model.WhisperWall))
+	admin.DELETE("/whispers/:id", hopeWhisperHandler.Delete(model.WhisperWall))
 
 	hopes := v1.Group("/hopes")
-	hopes.POST("/", hopeHandler.Create)
-	hopes.GET("/:id", hopeHandler.FindByID(false))
-	hopes.GET("/", hopeHandler.FindByLazyLoad(false))
+	hopes.POST("/", hopeWhisperHandler.Create(model.HopeCorner))
+	hopes.GET("/:id", hopeWhisperHandler.FindByID(model.HopeCorner, false))
+	hopes.GET("/", hopeWhisperHandler.FindByLazyLoad(model.HopeCorner, false))
+
+	whispers := v1.Group("/whispers")
+	whispers.POST("/", hopeWhisperHandler.Create(model.WhisperWall))
+	whispers.GET("/:id", hopeWhisperHandler.FindByID(model.WhisperWall, false))
+	whispers.GET("/", hopeWhisperHandler.FindByLazyLoad(model.WhisperWall, false))
 
 	if err := router.Run(":" + os.Getenv("PORT")); err != nil {
 		log.Fatalln(err)

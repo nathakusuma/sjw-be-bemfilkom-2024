@@ -31,13 +31,13 @@ func (s *userService) Login(username, password string) response.ApiResponse {
 		if !ok {
 			return response.NewApiResponse(500, "fail to authenticate to ub auth", err)
 		}
-		return response.NewApiResponse(respErr.Code, respErr.Message, nil)
+		return response.NewApiResponse(respErr.Code, respErr.Message, gin.H{})
 	}
 
 	user, err := s.r.FindByNim(studentDetails.NIM)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return response.NewApiResponse(404, "user not found", nil)
+			return response.NewApiResponse(404, "user not found", gin.H{})
 		}
 		return response.NewApiResponse(500, "fail to get user data", err)
 	}
