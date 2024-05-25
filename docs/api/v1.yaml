@@ -8,6 +8,8 @@ info:
 servers:
   - url: 'https://api.sjw.nathakusuma.com/v1'
     description: Production server
+  - url: 'http://localhost:8080/v1'
+    description: Local server
 tags:
   - name: auth
     description: Authentication & Authorization
