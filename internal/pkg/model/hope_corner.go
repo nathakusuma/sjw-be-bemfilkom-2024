@@ -1,7 +1,6 @@
 package model
 
 import (
-	"database/sql"
 	"github.com/google/uuid"
 )
 
@@ -25,10 +24,10 @@ type FindHopeResponse struct {
 
 type FindHopeAsAdminResponse struct {
 	FindHopeResponse
-	IsApproved sql.NullBool `json:"is_approved"`
+	IsApproved *bool `json:"is_approved"`
 }
 
 type UpdateHopeRequest struct {
-	Content    string       `json:"content" binding:"omitempty,max=2000,min=1"`
-	IsApproved sql.NullBool `json:"is_approved" binding:"omitempty"`
+	Content    string `json:"content" binding:"omitempty,max=2000,min=1"`
+	IsApproved *bool  `json:"is_approved"`
 }
