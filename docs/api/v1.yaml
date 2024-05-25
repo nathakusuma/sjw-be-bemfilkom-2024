@@ -142,9 +142,9 @@ paths:
       parameters:
         - name: after_created_at
           in: query
-          description: The timestamp of the last hope in the previous fetch in RFC3339 format
+          description: The timestamp of the last hope in the previous fetch in RFC3339 format.
           required: false
-          example: 2006-01-02T15:04:05%2B07:00
+          example: 2006-01-02T15:04:05+07:00
           schema:
             type: string
             format: date-time
@@ -276,7 +276,7 @@ paths:
           in: query
           description: The timestamp of the last hope in the previous fetch in RFC3339 format
           required: false
-          example: 2006-01-02T15:04:05%2B07:00
+          example: 2006-01-02T15:04:05+07:00
           schema:
             type: string
             format: date-time
@@ -542,7 +542,7 @@ paths:
           in: query
           description: The timestamp of the last whisper in the previous fetch in RFC3339 format
           required: false
-          example: 2006-01-02T15:04:05%2B07:00
+          example: 2006-01-02T15:04:05+07:00
           schema:
             type: string
             format: date-time
@@ -674,7 +674,7 @@ paths:
           in: query
           description: The timestamp of the last whisper in the previous fetch in RFC3339 format
           required: false
-          example: 2006-01-02T15:04:05%2B07:00
+          example: 2006-01-02T15:04:05+07:00
           schema:
             type: string
             format: date-time
