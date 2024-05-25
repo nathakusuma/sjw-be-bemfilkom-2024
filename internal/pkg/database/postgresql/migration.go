@@ -6,8 +6,17 @@ import (
 )
 
 func MigrateTables(db *gorm.DB) error {
-	return db.AutoMigrate(
-		&entity.User{},
-		&entity.Hope{},
-	)
+	if err := db.AutoMigrate(&entity.User{}); err != nil {
+		return err
+	}
+
+	if err := db.Table("hopes").AutoMigrate(&entity.HopeWhisper{}); err != nil {
+		return err
+	}
+
+	if err := db.Table("whispers").AutoMigrate(&entity.HopeWhisper{}); err != nil {
+		return err
+	}
+
+	return nil
 }
