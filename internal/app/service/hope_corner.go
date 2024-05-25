@@ -117,7 +117,7 @@ func (s *hopeCornerService) FindByID(idStr string, isAdmin bool) response.ApiRes
 		return response.NewApiResponse(500, "fail to get hope", err)
 	}
 
-	if !isAdmin && hopeRaw.IsApproved.Bool == false {
+	if !isAdmin && (hopeRaw.IsApproved == nil || !*hopeRaw.IsApproved) {
 		return response.NewApiResponse(403, "hope not approved yet", nil)
 	}
 
@@ -145,8 +145,8 @@ func (s *hopeCornerService) Update(idStr string, req model.UpdateHopeRequest) re
 	}
 
 	update := entity.Hope{
-		ID:         id,
 		Content:    req.Content,
+		ID:         id,
 		IsApproved: req.IsApproved,
 	}
 
