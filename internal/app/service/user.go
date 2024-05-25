@@ -7,6 +7,7 @@ import (
 	"github.com/bem-filkom/sjw-be-2024/internal/pkg/jwt"
 	"github.com/bem-filkom/sjw-be-2024/internal/pkg/response"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type userService struct {
@@ -35,6 +36,9 @@ func (s *userService) Login(username, password string) response.ApiResponse {
 
 	user, err := s.r.FindByNim(studentDetails.NIM)
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return response.NewApiResponse(404, "user not found", nil)
+		}
 		return response.NewApiResponse(500, "fail to get user data", err)
 	}
 
