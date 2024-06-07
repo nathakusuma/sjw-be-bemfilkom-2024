@@ -36,13 +36,15 @@ type FindHopesWhispersLazyLoadRequest struct {
 }
 
 type FindHopeWhisperResponse struct {
-	ID      uuid.UUID `json:"id"`
-	Content string    `json:"content"`
+	ID        uuid.UUID `json:"id"`
+	Content   string    `json:"content"`
+	CreatedAt string    `json:"created_at"`
 }
 
 type FindHopeWhisperAsAdminResponse struct {
 	FindHopeWhisperResponse
-	IsApproved *bool `json:"is_approved"`
+	IsApproved *bool  `json:"is_approved"`
+	UpdatedAt  string `json:"updated_at"`
 }
 
 type UpdateHopeWhisperRequest struct {
