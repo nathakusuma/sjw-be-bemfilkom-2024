@@ -38,11 +38,12 @@ func (h *hopeWhisperHandler) Create(hwType model.HopeWhisperType) gin.HandlerFun
 
 func (h *hopeWhisperHandler) FindByLazyLoad(hwType model.HopeWhisperType, isAdmin bool) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		afterCreatedAt := ctx.Query("after_created_at")
-		afterId := ctx.Query("after_id")
+		createdAtPivot := ctx.Query("created_at_pivot")
+		idPivot := ctx.Query("id_pivot")
+		direction := ctx.Query("direction")
 		limit := ctx.Query("limit")
 
-		res := h.s.FindByLazyLoad(hwType, afterCreatedAt, afterId, limit, isAdmin)
+		res := h.s.FindByLazyLoad(hwType, createdAtPivot, idPivot, direction, limit, isAdmin)
 		res.Send(ctx)
 	}
 }

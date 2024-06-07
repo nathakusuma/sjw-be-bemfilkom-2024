@@ -19,7 +19,7 @@ type hopeWhisperService struct {
 
 type IHopeWhisperService interface {
 	Create(hwType model.HopeWhisperType, content string) response.ApiResponse
-	FindByLazyLoad(hwType model.HopeWhisperType, afterCreatedAt, afterId, limitStr string, isAdmin bool) response.ApiResponse
+	FindByLazyLoad(hwType model.HopeWhisperType, createdAtPivot, idPivot, direction, limitStr string, isAdmin bool) response.ApiResponse
 	FindByID(hwType model.HopeWhisperType, idStr string, isAdmin bool) response.ApiResponse
 	Update(hwType model.HopeWhisperType, idStr string, req model.UpdateHopeWhisperRequest) response.ApiResponse
 	Delete(hwType model.HopeWhisperType, idStr string) response.ApiResponse
@@ -38,7 +38,7 @@ func (s *hopeWhisperService) Create(hwType model.HopeWhisperType, content string
 	return response.NewApiResponse(201, hwType.Singular()+" created", gin.H{"id": id})
 }
 
-func (s *hopeWhisperService) FindByLazyLoad(hwType model.HopeWhisperType, afterCreatedAt, afterId, limitStr string, isAdmin bool) response.ApiResponse {
+func (s *hopeWhisperService) FindByLazyLoad(hwType model.HopeWhisperType, createdAtPivot, idPivot, direction, limitStr string, isAdmin bool) response.ApiResponse {
 	var MAX_FETCH = 10
 	if isAdmin {
 		MAX_FETCH = 20
@@ -54,32 +54,34 @@ func (s *hopeWhisperService) FindByLazyLoad(hwType model.HopeWhisperType, afterC
 		return response.NewApiResponse(400, "limit exceeds maximum fetch", gin.H{})
 	}
 
-	isAfterCreateAtExist := afterCreatedAt != ""
-	isAfterIdExist := afterId != ""
+	isCreateAtPivotExist := createdAtPivot != ""
+	isIdPivotExist := idPivot != ""
 
-	if isAfterCreateAtExist != isAfterIdExist {
-		return response.NewApiResponse(400, "after_created_at and after_id must be provided together", gin.H{})
+	if isCreateAtPivotExist != isIdPivotExist {
+		return response.NewApiResponse(400, "created_at_pivot and id_pivot must be provided together", gin.H{})
 	}
+
+	isPrev := direction == "prev"
 
 	var hopesWhispersRaw []entity.HopeWhisper
 
-	if !isAfterCreateAtExist && !isAfterIdExist {
-		hopesWhispersRaw, err = s.r.FindByLazyLoad(hwType, time.Time{}, uuid.Nil, limit, isAdmin)
+	if !isCreateAtPivotExist && !isIdPivotExist {
+		hopesWhispersRaw, err = s.r.FindByLazyLoad(hwType, time.Time{}, uuid.Nil, isPrev, limit, isAdmin)
 		if err != nil {
 			return response.NewApiResponse(500, "fail to get "+hwType.String(), err)
 		}
 	} else {
-		afterTime, err := time.Parse(time.RFC3339, afterCreatedAt)
+		timePivot, err := time.Parse(time.RFC3339, createdAtPivot)
 		if err != nil {
 			return response.NewApiResponse(400, "invalid time format", err)
 		}
 
-		afterUuid, err := uuid.Parse(afterId)
+		uuidPivot, err := uuid.Parse(idPivot)
 		if err != nil {
 			return response.NewApiResponse(400, "invalid uuid format", err)
 		}
 
-		hopesWhispersRaw, err = s.r.FindByLazyLoad(hwType, afterTime, afterUuid, limit, isAdmin)
+		hopesWhispersRaw, err = s.r.FindByLazyLoad(hwType, timePivot, uuidPivot, isPrev, limit, isAdmin)
 		if err != nil {
 			return response.NewApiResponse(500, "fail to get "+hwType.String(), err)
 		}
@@ -88,13 +90,15 @@ func (s *hopeWhisperService) FindByLazyLoad(hwType model.HopeWhisperType, afterC
 	hopesWhispers := make([]any, len(hopesWhispersRaw))
 	for i, hopeWhisper := range hopesWhispersRaw {
 		res := model.FindHopeWhisperResponse{
-			ID:      hopeWhisper.ID,
-			Content: hopeWhisper.Content,
+			ID:        hopeWhisper.ID,
+			Content:   hopeWhisper.Content,
+			CreatedAt: hopeWhisper.CreatedAt.Format(time.RFC3339),
 		}
 		if isAdmin {
 			hopesWhispers[i] = model.FindHopeWhisperAsAdminResponse{
 				FindHopeWhisperResponse: res,
 				IsApproved:              hopeWhisper.IsApproved,
+				UpdatedAt:               hopeWhisper.UpdatedAt.Format(time.RFC3339),
 			}
 		}
 		hopesWhispers[i] = res

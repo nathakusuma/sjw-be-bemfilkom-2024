@@ -10,7 +10,7 @@ import (
 
 type IHopeWhisperRepository interface {
 	Create(hwType model.HopeWhisperType, content string) (uuid.UUID, error)
-	FindByLazyLoad(hwType model.HopeWhisperType, afterCreatedAt time.Time, afterId uuid.UUID, limit int, isAdmin bool) ([]entity.HopeWhisper, error)
+	FindByLazyLoad(hwType model.HopeWhisperType, createdAtPivot time.Time, idPivot uuid.UUID, isPrev bool, limit int, isAdmin bool) ([]entity.HopeWhisper, error)
 	FindByID(hwType model.HopeWhisperType, id uuid.UUID) (entity.HopeWhisper, error)
 	Update(hwType model.HopeWhisperType, hopeWhisper entity.HopeWhisper) error
 	Delete(hwType model.HopeWhisperType, id uuid.UUID) error
@@ -36,7 +36,7 @@ func (r *hopeWhisperRepository) Create(hwType model.HopeWhisperType, content str
 	return hopeWhisper.ID, nil
 }
 
-func (r *hopeWhisperRepository) FindByLazyLoad(hwType model.HopeWhisperType, afterCreatedAt time.Time, afterId uuid.UUID, limit int, isAdmin bool) ([]entity.HopeWhisper, error) {
+func (r *hopeWhisperRepository) FindByLazyLoad(hwType model.HopeWhisperType, createdAtPivot time.Time, idPivot uuid.UUID, isPrev bool, limit int, isAdmin bool) ([]entity.HopeWhisper, error) {
 	var hopes []entity.HopeWhisper
 
 	tx := r.db.Table(hwType.String())
@@ -44,8 +44,14 @@ func (r *hopeWhisperRepository) FindByLazyLoad(hwType model.HopeWhisperType, aft
 		tx = tx.Where("is_approved = ?", true)
 	}
 
-	if (afterCreatedAt != time.Time{} && afterId != uuid.Nil) {
-		tx = tx.Where("created_at < ? OR (created_at = ? AND id > ?)", afterCreatedAt, afterCreatedAt, afterId)
+	if (createdAtPivot != time.Time{} && idPivot != uuid.Nil) {
+		createdAtOperator := "<"
+		idOperator := ">"
+		if isPrev {
+			createdAtOperator = ">"
+			idOperator = "<"
+		}
+		tx = tx.Where("created_at "+createdAtOperator+" ? OR (created_at = ? AND id "+idOperator+" ?)", createdAtPivot, createdAtPivot, idPivot)
 	}
 
 	tx = tx.
