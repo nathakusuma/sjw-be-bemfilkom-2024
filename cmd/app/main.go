@@ -38,12 +38,12 @@ func main() {
 	router.Use(middleware.CORS)
 
 	router.GET("/", func(ctx *gin.Context) {
-		ctx.Redirect(301, "/docs/v1")
+		ctx.Redirect(301, "/docs/v1/")
 	})
 
 	docs := router.Group("/docs")
 	docs.GET("", func(ctx *gin.Context) {
-		ctx.Redirect(301, "/docs/v1")
+		ctx.Redirect(301, "/docs/v1/")
 	})
 	docs.GET("/v1.yaml", func(ctx *gin.Context) {
 		ctx.File("./docs/api/v1.yaml")
