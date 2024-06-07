@@ -56,9 +56,10 @@ func (s *hopeWhisperService) FindByLazyLoad(hwType model.HopeWhisperType, create
 
 	isCreateAtPivotExist := createdAtPivot != ""
 	isIdPivotExist := idPivot != ""
+	isDirectionExist := direction != ""
 
-	if isCreateAtPivotExist != isIdPivotExist {
-		return response.NewApiResponse(400, "created_at_pivot and id_pivot must be provided together", gin.H{})
+	if isCreateAtPivotExist != isIdPivotExist || isCreateAtPivotExist != isDirectionExist || isIdPivotExist != isDirectionExist {
+		return response.NewApiResponse(400, "created_at_pivot, id_pivot, and direction must be provided together", gin.H{})
 	}
 
 	isPrev := direction == "prev"

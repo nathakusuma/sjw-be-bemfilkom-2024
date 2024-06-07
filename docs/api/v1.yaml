@@ -254,7 +254,7 @@ paths:
         - Implements lazy load.
         - It will return only approved hopes.
         - The result will be sorted by the creation timestamp from latest to oldest.
-        - If either `created_at_pivot` or `id_pivot` is present, then both must be present.
+        - If either `created_at_pivot`, `id_pivot` or `direction` is present, then all of them must be present.
       parameters:
         - $ref: '#/components/parameters/CreatedAtPivot'
         - $ref: '#/components/parameters/IdPivot'
@@ -588,7 +588,7 @@ paths:
         - Implements lazy load.
         - It will return only approved whispers.
         - The result will be sorted by the creation timestamp from latest to oldest.
-        - If either `created_at_pivot` or `id_pivot` is present, then both must be present.
+        - If either `created_at_pivot`, `id_pivot` or `direction` is present, then all of them must be present.
       parameters:
         - $ref: '#/components/parameters/CreatedAtPivot'
         - $ref: '#/components/parameters/IdPivot'
