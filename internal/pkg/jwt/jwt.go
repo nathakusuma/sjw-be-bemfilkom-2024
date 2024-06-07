@@ -19,9 +19,7 @@ type JWT struct {
 
 type Claims struct {
 	jwt.RegisteredClaims
-	Email    string `json:"email"`
-	FullName string `json:"full_name"`
-	Role     string `json:"role"`
+	Role string `json:"role"`
 }
 
 func NewJWT(secretKey string, ttlString string) IJWT {
@@ -42,9 +40,7 @@ func (j JWT) Create(user entity.User) (string, error) {
 			Subject:   user.Nim,
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(j.TTL)),
 		},
-		Email:    user.Email,
-		Role:     user.Role,
-		FullName: user.FullName,
+		Role: user.Role,
 	}
 
 	unsignedJWT := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
