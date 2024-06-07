@@ -4,11 +4,10 @@ info:
   version: 1.0.0
   contact:
     name: I Putu Natha Kusuma
-    email: natha@nathakusuma.com
 servers:
-  - url: 'https://api.sjw.nathakusuma.com/v1'
+  - url: https://api.sjw.nathakusuma.com/v1
     description: Production server
-  - url: 'http://localhost:8080/v1'
+  - url: http://localhost:8080/v1
     description: Local server
 tags:
   - name: auth
@@ -19,6 +18,108 @@ tags:
     description: Whisper Wall
   - name: admin
     description: Admin only endpoints
+components:
+  securitySchemes:
+    JwtAuth:
+      type: http
+      description: Authorization and authentication based on JSON Web Token (JWT)
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    ApiResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          description: The message of the response
+        data:
+          type: object
+          description: The response data (if any)
+    HopeUser:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: The UUID of the hope
+          example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+        content:
+          type: string
+          description: The content of the hope
+          example: This is a hope
+        created_at:
+          type: string
+          format: date-time
+          description: The timestamp when the hope was created in RFC3339 format
+          example: 2006-01-02T15:04:05+07:00
+    HopeAdmin:
+      allOf:
+        - $ref: '#/components/schemas/HopeUser'
+        - type: object
+          properties:
+            is_approved:
+              type: boolean
+              description: Approval status of the hope
+              example: true
+            updated_at:
+              type: string
+              format: date-time
+              description: The timestamp when the hope was last updated in RFC3339 format
+              example: 2006-02-03T16:05:06+07:00
+    WhisperUser:
+      allOf:
+        - $ref: '#/components/schemas/HopeUser'
+    WhisperAdmin:
+      allOf:
+        - $ref: '#/components/schemas/HopeAdmin'
+  parameters:
+    IdPath:
+      name: id
+      in: path
+      description: The UUID of the resource
+      required: true
+      example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+      schema:
+        type: string
+        format: uuid
+    CreatedAtPivot:
+      name: created_at_pivot
+      in: query
+      description: The timestamp of the pivot resource in RFC3339 format.
+      required: false
+      example: 2006-01-02T15:04:05+07:00
+      schema:
+        type: string
+        format: date-time
+    IdPivot:
+      name: id_pivot
+      in: query
+      description: The UUID of the pivot resource.
+      required: false
+      example: 4fa85f64-5717-4562-b3fc-2c963f66afa7
+      schema:
+        type: string
+        format: uuid
+    Direction:
+      name: direction
+      in: query
+      description: The direction of the fetch.
+      required: false
+      example: next
+      schema:
+        type: string
+        enum:
+          - prev
+          - next
+    Limit:
+      name: limit
+      in: query
+      description: The maximum number of resource to return
+      required: true
+      example: 10
+      schema:
+        type: integer
+        format: int32
 paths:
   /auth/login:
     post:
@@ -53,46 +154,46 @@ paths:
                   username: natha@student.ub.ac.id
                   password: very-secure-password
       responses:
-        '200':
+        200:
           description: Successfully logged in
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    description: The message of the response
-                  data:
-                    type: object
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
                     properties:
-                      token:
-                        type: string
-                        description: The JWT token for the authenticated session
+                      data:
+                        type: object
+                        properties:
+                          token:
+                            type: string
+                            description: The JWT token for the authenticated session
               example:
                 message: successfully logged in
                 data:
                   token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyMzUxNTAyMDExMTEwMDAiLCJlbWFpbCI6Im5hdGhhQHN0dWRlbnQudWIuYWMuaWQiLCJmdWxsX25hbWUiOiJOYXRoYSBLdXN1bWEiLCJyb2xlIjoiYWRtaW4iLCJleHAiOjE1MTYyMzkwMjJ9.0ee45LPBN67SU0XPt-rNLAqLQwJiyVogGw7bu9aOi-Y
-        '401':
+        401:
           description: Invalid credentials
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    description: The message of the response
-                  data:
-                    type: object
-                    description: The response details (if any)
+                $ref: '#/components/schemas/ApiResponse'
               example:
                 message: Invalid username or password
                 data: {}
-        '400':
+        400:
           description: Invalid request body
-        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        500:
           description: Fail to authenticate to UB auth or fail to get user data or fail to generate token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
   /hopes:
     post:
       tags:
@@ -111,102 +212,95 @@ paths:
               required:
                 - content
             example:
-              content: "This is a new hope"
+              content: This is a new hope
       responses:
-        '201':
+        201:
           description: Successfully created a new hope
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    description: The message of the response
-                  data:
-                    type: object
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
                     properties:
-                      id:
-                        type: string
-                        description: The UUID of the created hope
+                      data:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                            format: uuid
+                            description: The UUID of the created hope
               example:
                 message: hope created
                 data:
                   id: 3fa85f64-5717-4562-b3fc-2c963f66afa6
-        '400':
+        400:
           description: Invalid request body
-        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        500:
           description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
     get:
       tags:
         - hopes
       summary: Retrieve a list of approved hopes
+      description: |-
+        - Implements lazy load.
+        - It will return only approved hopes.
+        - The result will be sorted by the creation timestamp from latest to oldest.
+        - If either `created_at_pivot` or `id_pivot` is present, then both must be present.
       parameters:
-        - name: after_created_at
-          in: query
-          description: The timestamp of the last hope in the previous fetch in RFC3339 format.
-          required: false
-          example: 2006-01-02T15:04:05+07:00
-          schema:
-            type: string
-            format: date-time
-        - name: after_id
-          in: query
-          description: The UUID of the last hope in the previous fetch
-          required: false
-          example: 4fa85f64-5717-4562-b3fc-2c963f66afa7
-          schema:
-            type: string
-            format: uuid
-        - name: limit
-          in: query
-          description: The maximum number of hopes to return
-          required: false
-          example: 10
-          schema:
-            type: integer
-            format: int32
+        - $ref: '#/components/parameters/CreatedAtPivot'
+        - $ref: '#/components/parameters/IdPivot'
+        - $ref: '#/components/parameters/Direction'
+        - $ref: '#/components/parameters/Limit'
       responses:
-        '200':
+        200:
           description: Successfully retrieved hopes
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    description: The message of the response
-                  data:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        id:
-                          type: string
-                          description: The UUID of the hope
-                        content:
-                          type: string
-                          description: The content of the hope
-                        created_at:
-                          type: string
-                          format: date-time
-                          description: The timestamp when the hope was created in RFC3339 format
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/HopeUser'
               example:
                 message: hopes retrieved
                 data:
                   - id: 3fa85f64-5717-4562-b3fc-2c963f66afa6
-                    content: "This is a hope"
+                    content: This is a hope
                     created_at: 2006-01-02T15:04:05+07:00
-        '400':
+                  - id: abcdef12-3456-7890-abcd-ef1234567890
+                    content: This is another hope
+                    created_at: 2004-01-01T14:03:04+07:00
+        400:
           description: Invalid query parameters
-        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        500:
           description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
   /hopes/{id}:
     get:
       tags:
         - hopes
-      summary: Retrieve a specific approved hope by its ID
+      summary: Retrieve a specific hope by its ID
+      description: It will return only approved hopes.
       parameters:
         - name: id
           in: path
@@ -217,55 +311,41 @@ paths:
             type: string
             format: uuid
       responses:
-        '200':
+        200:
           description: Successfully retrieved the hope
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    description: The message of the response
-                  data:
-                    type: object
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
                     properties:
-                      id:
-                        type: string
-                        description: The UUID of the hope
-                      content:
-                        type: string
-                        description: The content of the hope
-                      created_at:
-                        type: string
-                        format: date-time
-                        description: The timestamp when the hope was created in RFC3339 format
+                      data:
+                        $ref: '#/components/schemas/HopeUser'
               example:
                 message: hope retrieved
                 data:
                   id: 3fa85f64-5717-4562-b3fc-2c963f66afa6
-                  content: "This is a hope"
+                  content: This is a hope
                   created_at: 2006-01-02T15:04:05+07:00
-        '400':
+        400:
           description: Invalid ID format
-        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        404:
           description: Hope not found
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    description: The message of the response
-                  data:
-                    type: object
-                    description: The response details (if any)
-              example:
-                message: hope not found
-                data: {}
-        '500':
+                $ref: '#/components/schemas/ApiResponse'
+        500:
           description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
   /admin/hopes:
     get:
       tags:
@@ -274,75 +354,54 @@ paths:
       summary: Retrieve a list of hopes as an admin
       description: It will return all hopes, including unapproved ones.
       parameters:
-        - name: after_created_at
-          in: query
-          description: The timestamp of the last hope in the previous fetch in RFC3339 format
-          required: false
-          example: 2006-01-02T15:04:05+07:00
-          schema:
-            type: string
-            format: date-time
-        - name: after_id
-          in: query
-          description: The UUID of the last hope in the previous fetch
-          required: false
-          example: 4fa85f64-5717-4562-b3fc-2c963f66afa7
-          schema:
-            type: string
-            format: uuid
-        - name: limit
-          in: query
-          description: The maximum number of hopes to return
-          required: false
-          example: 10
-          schema:
-            type: integer
-            format: int32
+        - $ref: '#/components/parameters/CreatedAtPivot'
+        - $ref: '#/components/parameters/IdPivot'
+        - $ref: '#/components/parameters/Direction'
+        - $ref: '#/components/parameters/Limit'
       responses:
-        '200':
+        200:
           description: Successfully retrieved hopes
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    description: The message of the response
-                  data:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        id:
-                          type: string
-                          description: The UUID of the hope
-                        content:
-                          type: string
-                          description: The content of the hope
-                        is_approved:
-                          type: boolean
-                          description: Approval status of the hope
-                        created_at:
-                          type: string
-                          format: date-time
-                          description: The timestamp when the hope was created in RFC3339 format
-                        updated_at:
-                          type: string
-                          format: date-time
-                          description: The timestamp when the hope was last updated in RFC3339 format
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/HopeAdmin'
               example:
                 message: hopes retrieved
                 data:
                   - id: 3fa85f64-5717-4562-b3fc-2c963f66afa6
-                    content: "This is a hope"
+                    content: This is a hope
                     is_approved: true
                     created_at: 2006-01-02T15:04:05+07:00
-                    updated_at: 2006-01-02T15:04:05+07:00
-        '400':
+                    updated_at: 2006-02-02T15:04:05+07:00
+                  - id: abcdef12-3456-7890-abcd-ef1234567890
+                    content: This is another hope
+                    is_approved: true
+                    created_at: 2004-01-01T14:03:04+07:00
+                    updated_at: 2004-02-01T14:03:04+07:00
+                  - id: 12345678-90ab-cdef-1234-567890abcdef
+                    content: This is an unapproved hope
+                    is_approved: false
+                    created_at: 2002-02-02T13:02:03+07:00
+                    updated_at: 2002-03-02T13:02:03+07:00
+        400:
           description: Invalid query parameters
-        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        500:
           description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
   /admin/hopes/{id}:
     get:
       tags:
@@ -350,73 +409,52 @@ paths:
         - hopes
       summary: Retrieve a specific hope by its ID as an admin
       parameters:
-        - name: id
-          in: path
-          description: The UUID of the hope
-          required: true
-          example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/IdPath'
       responses:
-        '200':
+        200:
           description: Successfully retrieved the hope
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    description: The message of the response
-                  data:
-                    type: object
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
                     properties:
-                      id:
-                        type: string
-                        description: The UUID of the hope
-                      content:
-                        type: string
-                        description: The content of the hope
-                      is_approved:
-                        type: boolean
-                        description: Approval status of the hope
-                      created_at:
-                        type: string
-                        format: date-time
-                        description: The timestamp when the hope was created in RFC3339 format
-                      updated_at:
-                        type: string
-                        format: date-time
-                        description: The timestamp when the hope was last updated in RFC3339 format
+                      data:
+                        $ref: '#/components/schemas/HopeAdmin'
               example:
                 message: hope retrieved
                 data:
                   id: 3fa85f64-5717-4562-b3fc-2c963f66afa6
-                  content: "This is a hope"
+                  content: This is a hope
                   is_approved: true
                   created_at: 2006-01-02T15:04:05+07:00
                   updated_at: 2006-01-02T15:04:05+07:00
-        '400':
+        400:
           description: Invalid ID format
-        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        404:
           description: Hope not found
-        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        500:
           description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
     patch:
       tags:
         - admin
         - hopes
       summary: Update a specific hope by its ID as an admin
       parameters:
-        - name: id
-          in: path
-          description: The UUID of the hope
-          required: true
-          example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/IdPath'
       requestBody:
         required: true
         content:
@@ -431,66 +469,65 @@ paths:
                   type: boolean
                   description: The updated approval status of the hope
             example:
-              content: "This is an updated hope"
+              content: This is an updated hope
               is_approved: true
       responses:
-        '200':
+        200:
           description: Successfully updated the hope
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    description: The message of the response
-                  data: {}
-              example:
-                message: hope updated
-                data: {}
-        '400':
+                $ref: '#/components/schemas/ApiResponse'
+        400:
           description: Invalid ID format or request body
-        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        404:
           description: Hope not found
-        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        500:
           description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
     delete:
       tags:
         - admin
         - hopes
       summary: Delete a specific hope by its ID as an admin
       parameters:
-        - name: id
-          in: path
-          description: The UUID of the hope
-          required: true
-          example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/IdPath'
       responses:
-        '200':
+        200:
           description: Successfully deleted the hope
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    description: The message of the response
-                  data:
-                    type: object
-                    description: The response details (if any)
-              example:
-                message: hope deleted
-                data: {}
-        '400':
+                $ref: '#/components/schemas/ApiResponse'
+        400:
           description: Invalid ID format
-        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        404:
           description: Hope not found
-        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        500:
           description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
   /whispers:
     post:
       tags:
@@ -509,102 +546,95 @@ paths:
               required:
                 - content
             example:
-              content: "This is a new whisper"
+              content: This is a new whisper
       responses:
-        '201':
+        201:
           description: Successfully created a new whisper
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    description: The message of the response
-                  data:
-                    type: object
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
                     properties:
-                      id:
-                        type: string
-                        description: The UUID of the created whisper
+                      data:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                            format: uuid
+                            description: The UUID of the created whisper
               example:
                 message: whisper created
                 data:
                   id: 3fa85f64-5717-4562-b3fc-2c963f66afa6
-        '400':
+        400:
           description: Invalid request body
-        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        500:
           description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
     get:
       tags:
         - whispers
       summary: Retrieve a list of approved whispers
+      description: |-
+        - Implements lazy load.
+        - It will return only approved whispers.
+        - The result will be sorted by the creation timestamp from latest to oldest.
+        - If either `created_at_pivot` or `id_pivot` is present, then both must be present.
       parameters:
-        - name: after_created_at
-          in: query
-          description: The timestamp of the last whisper in the previous fetch in RFC3339 format
-          required: false
-          example: 2006-01-02T15:04:05+07:00
-          schema:
-            type: string
-            format: date-time
-        - name: after_id
-          in: query
-          description: The UUID of the last whisper in the previous fetch
-          required: false
-          example: 4fa85f64-5717-4562-b3fc-2c963f66afa7
-          schema:
-            type: string
-            format: uuid
-        - name: limit
-          in: query
-          description: The maximum number of whispers to return
-          required: false
-          example: 10
-          schema:
-            type: integer
-            format: int32
+        - $ref: '#/components/parameters/CreatedAtPivot'
+        - $ref: '#/components/parameters/IdPivot'
+        - $ref: '#/components/parameters/Direction'
+        - $ref: '#/components/parameters/Limit'
       responses:
-        '200':
+        200:
           description: Successfully retrieved whispers
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    description: The message of the response
-                  data:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        id:
-                          type: string
-                          description: The UUID of the whisper
-                        content:
-                          type: string
-                          description: The content of the whisper
-                        created_at:
-                          type: string
-                          format: date-time
-                          description: The timestamp when the whisper was created in RFC3339 format
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/WhisperUser'
               example:
                 message: whispers retrieved
                 data:
                   - id: 3fa85f64-5717-4562-b3fc-2c963f66afa6
-                    content: "This is a whisper"
+                    content: This is a whisper
                     created_at: 2006-01-02T15:04:05+07:00
-        '400':
+                  - id: abcdef12-3456-7890-abcd-ef1234567890
+                    content: This is another whisper
+                    created_at: 2004-01-01T14:03:04+07:00
+        400:
           description: Invalid query parameters
-        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        500:
           description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
   /whispers/{id}:
     get:
       tags:
         - whispers
-      summary: Retrieve a specific approved whisper by its ID
+      summary: Retrieve a specific whisper by its ID
+      description: It will return only approved whispers.
       parameters:
         - name: id
           in: path
@@ -615,55 +645,41 @@ paths:
             type: string
             format: uuid
       responses:
-        '200':
+        200:
           description: Successfully retrieved the whisper
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    description: The message of the response
-                  data:
-                    type: object
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
                     properties:
-                      id:
-                        type: string
-                        description: The UUID of the whisper
-                      content:
-                        type: string
-                        description: The content of the whisper
-                      created_at:
-                        type: string
-                        format: date-time
-                        description: The timestamp when the whisper was created in RFC3339 format
+                      data:
+                        $ref: '#/components/schemas/WhisperUser'
               example:
                 message: whisper retrieved
                 data:
                   id: 3fa85f64-5717-4562-b3fc-2c963f66afa6
-                  content: "This is a whisper"
+                  content: This is a whisper
                   created_at: 2006-01-02T15:04:05+07:00
-        '400':
+        400:
           description: Invalid ID format
-        '404':
-          description: whisper not found
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    description: The message of the response
-                  data:
-                    type: object
-                    description: The response details (if any)
-              example:
-                message: whisper not found
-                data: { }
-        '500':
+                $ref: '#/components/schemas/ApiResponse'
+        404:
+          description: Whisper not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        500:
           description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
   /admin/whispers:
     get:
       tags:
@@ -672,75 +688,54 @@ paths:
       summary: Retrieve a list of whispers as an admin
       description: It will return all whispers, including unapproved ones.
       parameters:
-        - name: after_created_at
-          in: query
-          description: The timestamp of the last whisper in the previous fetch in RFC3339 format
-          required: false
-          example: 2006-01-02T15:04:05+07:00
-          schema:
-            type: string
-            format: date-time
-        - name: after_id
-          in: query
-          description: The UUID of the last whisper in the previous fetch
-          required: false
-          example: 4fa85f64-5717-4562-b3fc-2c963f66afa7
-          schema:
-            type: string
-            format: uuid
-        - name: limit
-          in: query
-          description: The maximum number of whispers to return
-          required: false
-          example: 10
-          schema:
-            type: integer
-            format: int32
+        - $ref: '#/components/parameters/CreatedAtPivot'
+        - $ref: '#/components/parameters/IdPivot'
+        - $ref: '#/components/parameters/Direction'
+        - $ref: '#/components/parameters/Limit'
       responses:
-        '200':
+        200:
           description: Successfully retrieved whispers
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    description: The message of the response
-                  data:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        id:
-                          type: string
-                          description: The UUID of the whisper
-                        content:
-                          type: string
-                          description: The content of the whisper
-                        is_approved:
-                          type: boolean
-                          description: Approval status of the whisper
-                        created_at:
-                          type: string
-                          format: date-time
-                          description: The timestamp when the whisper was created in RFC3339 format
-                        updated_at:
-                          type: string
-                          format: date-time
-                          description: The timestamp when the whisper was last updated in RFC3339 format
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/WhisperAdmin'
               example:
                 message: whispers retrieved
                 data:
                   - id: 3fa85f64-5717-4562-b3fc-2c963f66afa6
-                    content: "This is a whisper"
+                    content: This is a whisper
                     is_approved: true
                     created_at: 2006-01-02T15:04:05+07:00
-                    updated_at: 2006-01-02T15:04:05+07:00
-        '400':
+                    updated_at: 2006-02-02T15:04:05+07:00
+                  - id: abcdef12-3456-7890-abcd-ef1234567890
+                    content: This is another whisper
+                    is_approved: true
+                    created_at: 2004-01-01T14:03:04+07:00
+                    updated_at: 2004-02-01T14:03:04+07:00
+                  - id: 12345678-90ab-cdef-1234-567890abcdef
+                    content: This is an unapproved whisper
+                    is_approved: false
+                    created_at: 2002-02-02T13:02:03+07:00
+                    updated_at: 2002-03-02T13:02:03+07:00
+        400:
           description: Invalid query parameters
-        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        500:
           description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
   /admin/whispers/{id}:
     get:
       tags:
@@ -748,73 +743,52 @@ paths:
         - whispers
       summary: Retrieve a specific whisper by its ID as an admin
       parameters:
-        - name: id
-          in: path
-          description: The UUID of the whisper
-          required: true
-          example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/IdPath'
       responses:
-        '200':
+        200:
           description: Successfully retrieved the whisper
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    description: The message of the response
-                  data:
-                    type: object
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
                     properties:
-                      id:
-                        type: string
-                        description: The UUID of the whisper
-                      content:
-                        type: string
-                        description: The content of the whisper
-                      is_approved:
-                        type: boolean
-                        description: Approval status of the whisper
-                      created_at:
-                        type: string
-                        format: date-time
-                        description: The timestamp when the whisper was created in RFC3339 format
-                      updated_at:
-                        type: string
-                        format: date-time
-                        description: The timestamp when the whisper was last updated in RFC3339 format
+                      data:
+                        $ref: '#/components/schemas/WhisperAdmin'
               example:
                 message: whisper retrieved
                 data:
                   id: 3fa85f64-5717-4562-b3fc-2c963f66afa6
-                  content: "This is a whisper"
+                  content: This is a whisper
                   is_approved: true
                   created_at: 2006-01-02T15:04:05+07:00
                   updated_at: 2006-01-02T15:04:05+07:00
-        '400':
+        400:
           description: Invalid ID format
-        '404':
-          description: whisper not found
-        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        404:
+          description: Whisper not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        500:
           description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
     patch:
       tags:
         - admin
         - whispers
       summary: Update a specific whisper by its ID as an admin
       parameters:
-        - name: id
-          in: path
-          description: The UUID of the whisper
-          required: true
-          example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/IdPath'
       requestBody:
         required: true
         content:
@@ -829,63 +803,62 @@ paths:
                   type: boolean
                   description: The updated approval status of the whisper
             example:
-              content: "This is an updated whisper"
+              content: This is an updated whisper
               is_approved: true
       responses:
-        '200':
+        200:
           description: Successfully updated the whisper
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    description: The message of the response
-                  data: { }
-              example:
-                message: whisper updated
-                data: { }
-        '400':
+                $ref: '#/components/schemas/ApiResponse'
+        400:
           description: Invalid ID format or request body
-        '404':
-          description: whisper not found
-        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        404:
+          description: Whisper not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        500:
           description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
     delete:
       tags:
         - admin
         - whispers
       summary: Delete a specific whisper by its ID as an admin
       parameters:
-        - name: id
-          in: path
-          description: The UUID of the whisper
-          required: true
-          example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/IdPath'
       responses:
-        '200':
+        200:
           description: Successfully deleted the whisper
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    description: The message of the response
-                  data:
-                    type: object
-                    description: The response details (if any)
-              example:
-                message: whisper deleted
-                data: { }
-        '400':
+                $ref: '#/components/schemas/ApiResponse'
+        400:
           description: Invalid ID format
-        '404':
-          description: whisper not found
-        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        404:
+          description: Whisper not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        500:
           description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
