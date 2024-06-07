@@ -72,6 +72,37 @@ components:
     WhisperAdmin:
       allOf:
         - $ref: '#/components/schemas/HopeAdmin'
+    User:
+        type: object
+        properties:
+          nim:
+            type: string
+            description: The NIM of the user
+            example: "235150201111000"
+          email:
+            type: string
+            description: The UB email of the user
+            example: natha@student.ub.ac.id
+          full_name:
+            type: string
+            description: The full name of the user
+            example: Natha Kusuma
+          role:
+            type: string
+            description: The role of the user
+            example: admin
+          angkatan:
+            type: integer
+            description: The year of the user's enrollment
+            example: "2023"
+          program_studi:
+            type: string
+            description: The study program of the user
+            example: Teknik Informatika
+          profile_picture:
+            type: string
+            description: The URL of the user's profile picture
+            example: https://siakad.ub.ac.id/dirfoto/foto/foto_2023/235150201111000.jpg
   parameters:
     IdPath:
       name: id
@@ -164,15 +195,27 @@ paths:
                   - type: object
                     properties:
                       data:
-                        type: object
-                        properties:
-                          token:
-                            type: string
-                            description: The JWT token for the authenticated session
+                        allOf:
+                          - type: string
+                            description: The JWT token
+                          - $ref: '#/components/schemas/User'
               example:
                 message: successfully logged in
                 data:
                   token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyMzUxNTAyMDExMTEwMDAiLCJlbWFpbCI6Im5hdGhhQHN0dWRlbnQudWIuYWMuaWQiLCJmdWxsX25hbWUiOiJOYXRoYSBLdXN1bWEiLCJyb2xlIjoiYWRtaW4iLCJleHAiOjE1MTYyMzkwMjJ9.0ee45LPBN67SU0XPt-rNLAqLQwJiyVogGw7bu9aOi-Y
+                  nim: "235150201111000"
+                  email: natha@student.ub.ac.id
+                  full_name: Natha Kusuma
+                  role: admin
+                  angkatan: "2023"
+                  program_studi: Teknik Informatika
+                  profile_picture: https://siakad.ub.ac.id/dirfoto/foto/foto_2023/235150201111000.jpg
+        400:
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
         401:
           description: Invalid credentials
           content:
@@ -182,12 +225,16 @@ paths:
               example:
                 message: Invalid username or password
                 data: {}
-        400:
-          description: Invalid request body
+        403:
+          description: User is not a FILKOM student
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiResponse'
+              example:
+                message: only for FILKOM students
+                data:
+                  fakultas: Fakultas Ilmu Sosial dan Ilmu Politik
         500:
           description: Fail to authenticate to UB auth or fail to get user data or fail to generate token
           content:
