@@ -53,9 +53,6 @@ func (c *Config) authRoute(r *gin.RouterGroup) {
 	auth := r.Group("/auth")
 	auth.Use(DefaultRateLimiter)
 	auth.POST("/login", c.AuthHandler.Login())
-	auth.GET("/check/admin", c.Middleware.Authenticate(), c.Middleware.RequireRole("admin"), func(ctx *gin.Context) {
-		ctx.JSON(200, gin.H{"message": "you are admin"})
-	})
 }
 
 func (c *Config) hopeCornerRoute(r *gin.RouterGroup) {
