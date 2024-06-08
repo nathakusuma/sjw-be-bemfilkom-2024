@@ -2,8 +2,8 @@ package config
 
 import (
 	"github.com/bem-filkom/sjw-be-2024/internal/app/handler/rest"
+	"github.com/bem-filkom/sjw-be-2024/internal/app/handler/rest/middleware"
 	"github.com/bem-filkom/sjw-be-2024/internal/app/handler/rest/route"
-	"github.com/bem-filkom/sjw-be-2024/internal/app/middleware"
 	"github.com/bem-filkom/sjw-be-2024/internal/app/repository"
 	"github.com/bem-filkom/sjw-be-2024/internal/app/service"
 	"github.com/bem-filkom/sjw-be-2024/internal/pkg/jwt"
