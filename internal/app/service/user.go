@@ -15,14 +15,14 @@ import (
 
 type userService struct {
 	r   repository.IUserRepository
-	jwt jwt.IJWT
+	jwt jwt.JWT
 }
 
 type IUserService interface {
 	Login(username, password string) response.ApiResponse
 }
 
-func NewUserService(repository repository.IUserRepository, jwt jwt.IJWT) IUserService {
+func NewUserService(repository repository.IUserRepository, jwt jwt.JWT) IUserService {
 	return &userService{r: repository, jwt: jwt}
 }
 

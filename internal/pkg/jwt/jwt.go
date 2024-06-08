@@ -7,11 +7,6 @@ import (
 	"time"
 )
 
-type IJWT interface {
-	Create(user entity.User) (string, error)
-	Decode(tokenString string, claims *Claims) error
-}
-
 type JWT struct {
 	SecretKey []byte
 	TTL       time.Duration
@@ -22,7 +17,7 @@ type Claims struct {
 	Role string `json:"role"`
 }
 
-func NewJWT(secretKey string, ttlString string) IJWT {
+func NewJWT(secretKey string, ttlString string) JWT {
 	ttl, err := time.ParseDuration(ttlString)
 	if err != nil || ttl <= 0 {
 		log.Fatalln(err)
@@ -34,7 +29,7 @@ func NewJWT(secretKey string, ttlString string) IJWT {
 	}
 }
 
-func (j JWT) Create(user entity.User) (string, error) {
+func (j *JWT) Create(user entity.User) (string, error) {
 	claims := Claims{
 		RegisteredClaims: jwt.RegisteredClaims{
 			Subject:   user.Nim,
@@ -52,7 +47,7 @@ func (j JWT) Create(user entity.User) (string, error) {
 	return signedJWT, nil
 }
 
-func (j JWT) Decode(tokenString string, claims *Claims) error {
+func (j *JWT) Decode(tokenString string, claims *Claims) error {
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 		return j.SecretKey, nil
 	})

@@ -7,23 +7,25 @@ import (
 	"strings"
 )
 
-func (m middleware) Authenticate(ctx *gin.Context) {
-	bearer := ctx.GetHeader("Authorization")
-	if bearer == "" {
-		response.NewApiResponse(401, "empty token", nil).Send(ctx)
-		ctx.Abort()
-		return
-	}
+func (m middleware) Authenticate() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		bearer := ctx.GetHeader("Authorization")
+		if bearer == "" {
+			response.NewApiResponse(401, "empty token", nil).Send(ctx)
+			ctx.Abort()
+			return
+		}
 
-	token := strings.Split(bearer, " ")[1]
-	var claims jwt.Claims
-	err := m.jwtAuth.Decode(token, &claims)
-	if err != nil {
-		response.NewApiResponse(401, "fail to validate token", err).Send(ctx)
-		ctx.Abort()
-		return
-	}
+		token := strings.Split(bearer, " ")[1]
+		var claims jwt.Claims
+		err := m.jwtAuth.Decode(token, &claims)
+		if err != nil {
+			response.NewApiResponse(401, "fail to validate token", err).Send(ctx)
+			ctx.Abort()
+			return
+		}
 
-	ctx.Set("claims", claims)
-	ctx.Next()
+		ctx.Set("claims", claims)
+		ctx.Next()
+	}
 }

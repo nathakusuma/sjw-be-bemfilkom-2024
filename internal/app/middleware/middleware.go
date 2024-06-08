@@ -6,14 +6,15 @@ import (
 )
 
 type IMiddleware interface {
-	Authenticate(ctx *gin.Context)
+	Authenticate() gin.HandlerFunc
 	RequireRole(role string) gin.HandlerFunc
+	CORS() gin.HandlerFunc
 }
 
 type middleware struct {
-	jwtAuth jwt.IJWT
+	jwtAuth jwt.JWT
 }
 
-func NewMiddleware(jwtAuth jwt.IJWT) IMiddleware {
+func NewMiddleware(jwtAuth jwt.JWT) IMiddleware {
 	return middleware{jwtAuth: jwtAuth}
 }

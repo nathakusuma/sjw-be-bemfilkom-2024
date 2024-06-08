@@ -12,20 +12,22 @@ type authHandler struct {
 }
 
 type IAuthHandler interface {
-	Login(ctx *gin.Context)
+	Login() gin.HandlerFunc
 }
 
 func NewAuthHandler(service service.IUserService) IAuthHandler {
 	return &authHandler{s: service}
 }
 
-func (h *authHandler) Login(ctx *gin.Context) {
-	var req model.LoginRequest
-	if err := ctx.ShouldBindJSON(&req); err != nil {
-		response.NewApiResponse(400, "invalid request body", err).Send(ctx)
-		return
-	}
+func (h *authHandler) Login() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		var req model.LoginRequest
+		if err := ctx.ShouldBindJSON(&req); err != nil {
+			response.NewApiResponse(400, "invalid request body", err).Send(ctx)
+			return
+		}
 
-	res := h.s.Login(req.Username, req.Password)
-	res.Send(ctx)
+		res := h.s.Login(req.Username, req.Password)
+		res.Send(ctx)
+	}
 }
