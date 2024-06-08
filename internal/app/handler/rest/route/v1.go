@@ -19,7 +19,7 @@ var CreateHopeWhisperRateLimiter gin.HandlerFunc
 
 func (c *Config) Setup() {
 	DefaultRateLimiter = c.Middleware.IpRateLimiter("default", 4, 8, "")
-	CreateHopeWhisperRateLimiter = c.Middleware.IpRateLimiter("create_hope_whisper", 0.05, 3, "")
+	CreateHopeWhisperRateLimiter = c.Middleware.IpRateLimiter("hope_whisper_create", 0.05, 3, "")
 
 	c.App.Use(gin.Logger())
 	c.App.Use(gin.Recovery())
@@ -51,8 +51,8 @@ func (c *Config) docsRoute() {
 
 func (c *Config) authRoute(r *gin.RouterGroup) {
 	auth := r.Group("/auth")
-	auth.Use(DefaultRateLimiter)
-	auth.POST("/login", c.AuthHandler.Login())
+	loginRateLimiter := c.Middleware.IpRateLimiter("auth_login", 0.02, 6, "Too many login attempts. Please try again in 5 minutes.")
+	auth.POST("/login", loginRateLimiter, c.AuthHandler.Login())
 }
 
 func (c *Config) hopeCornerRoute(r *gin.RouterGroup) {
