@@ -46,7 +46,7 @@ func (c *Config) docsRoute() {
 		ctx.Redirect(301, "/docs/v1/")
 	})
 	docs.GET("/v1.yaml", func(ctx *gin.Context) {
-		ctx.File("./docs/api/v1.yaml")
+		ctx.File("./api/openapi.yaml")
 	})
 	docs.Static("/v1", "./web/swagger-ui")
 }
