@@ -5,6 +5,7 @@ import (
 	"github.com/bem-filkom/sjw-be-2024/internal/app/handler/rest/middleware"
 	"github.com/bem-filkom/sjw-be-2024/internal/pkg/model"
 	"github.com/gin-gonic/gin"
+	"time"
 )
 
 type Config struct {
@@ -24,6 +25,7 @@ func (c *Config) Setup() {
 	c.App.Use(gin.Logger())
 	c.App.Use(gin.Recovery())
 	c.App.Use(c.Middleware.CORS())
+	c.App.Use(c.Middleware.Timeout(10 * time.Second))
 
 	c.docsRoute()
 
