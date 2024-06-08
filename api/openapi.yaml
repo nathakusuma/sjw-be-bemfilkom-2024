@@ -73,36 +73,36 @@ components:
       allOf:
         - $ref: '#/components/schemas/HopeAdmin'
     User:
-        type: object
-        properties:
-          nim:
-            type: string
-            description: The NIM of the user
-            example: "235150201111000"
-          email:
-            type: string
-            description: The UB email of the user
-            example: natha@student.ub.ac.id
-          full_name:
-            type: string
-            description: The full name of the user
-            example: Natha Kusuma
-          role:
-            type: string
-            description: The role of the user
-            example: admin
-          angkatan:
-            type: integer
-            description: The year of the user's enrollment
-            example: "2023"
-          program_studi:
-            type: string
-            description: The study program of the user
-            example: Teknik Informatika
-          profile_picture:
-            type: string
-            description: The URL of the user's profile picture
-            example: https://siakad.ub.ac.id/dirfoto/foto/foto_2023/235150201111000.jpg
+      type: object
+      properties:
+        nim:
+          type: string
+          description: The NIM of the user
+          example: "235150201111000"
+        email:
+          type: string
+          description: The UB email of the user
+          example: natha@student.ub.ac.id
+        full_name:
+          type: string
+          description: The full name of the user
+          example: Natha Kusuma
+        role:
+          type: string
+          description: The role of the user
+          example: admin
+        angkatan:
+          type: integer
+          description: The year of the user's enrollment
+          example: "2023"
+        program_studi:
+          type: string
+          description: The study program of the user
+          example: Teknik Informatika
+        profile_picture:
+          type: string
+          description: The URL of the user's profile picture
+          example: https://siakad.ub.ac.id/dirfoto/foto/foto_2023/235150201111000.jpg
   parameters:
     IdPath:
       name: id
@@ -151,6 +151,157 @@ components:
       schema:
         type: integer
         format: int32
+  responses:
+    Timeout:
+      description: Request timeout
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse'
+          example:
+            message: Request timed out
+            data: {}
+    RateLimitExceeded:
+      description: Rate limit exceeded
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse'
+          example:
+            message: Rate limit exceeded. Please try again later.
+            data: {}
+    InvalidRequestBody:
+      description: Invalid request body
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse'
+    InvalidCredentials:
+      description: Invalid credentials
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse'
+          example:
+            message: Invalid username or password
+            data: {}
+    NotFilkomStudent:
+      description: User is not a FILKOM student
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse'
+          example:
+            message: only for FILKOM students
+            data:
+              fakultas: Fakultas Ilmu Sosial dan Ilmu Politik
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse'
+    HopeCreated:
+      description: Successfully created a new hope
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/ApiResponse'
+              - type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        description: The UUID of the created hope
+          example:
+            message: hope created
+            data:
+              id: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+    HopesRetrieved:
+      description: Successfully retrieved hopes
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/ApiResponse'
+              - type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/HopeUser'
+          example:
+            message: hopes retrieved
+            data:
+              - id: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+                content: This is a hope
+                created_at: 2006-01-02T15:04:05+07:00
+              - id: abcdef12-3456-7890-abcd-ef1234567890
+                content: This is another hope
+                created_at: 2004-01-01T14:03:04+07:00
+  requestBodies:
+    LoginRequest:
+      description: Login request body
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              username:
+                type: string
+                description: Can be either NIM or email
+              password:
+                type: string
+                description: The password of the user
+            required:
+              - username
+              - password
+          examples:
+            withNIM:
+              summary: NIM as username
+              value:
+                username: "235150201111000"
+                password: very-secure-password
+            withEmail:
+              summary: Email as username
+              value:
+                username: natha@student.ub.ac.id
+                password: very-secure-password
+    HopeRequest:
+      description: Create hope request body
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              content:
+                type: string
+                description: The content of the hope
+            required:
+              - content
+          example:
+            content: This is a new hope
+    WhisperRequest:
+      description: Create whisper request body
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              content:
+                type: string
+                description: The content of the whisper
+            required:
+              - content
+          example:
+            content: This is a new whisper
 paths:
   /auth/login:
     post:
@@ -158,32 +309,7 @@ paths:
         - auth
       summary: Login to the system (for admins)
       requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                username:
-                  type: string
-                  description: Can be either NIM or email
-                password:
-                  type: string
-                  description: The password of the user
-              required:
-                - username
-                - password
-            examples:
-              withNIM:
-                summary: NIM as username
-                value:
-                  username: "235150201111000"
-                  password: very-secure-password
-              withEmail:
-                summary: Email as username
-                value:
-                  username: natha@student.ub.ac.id
-                  password: very-secure-password
+        $ref: '#/components/requestBodies/LoginRequest'
       responses:
         200:
           description: Successfully logged in
@@ -211,88 +337,41 @@ paths:
                   program_studi: Teknik Informatika
                   profile_picture: https://siakad.ub.ac.id/dirfoto/foto/foto_2023/235150201111000.jpg
         400:
-          description: Invalid request body
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiResponse'
+          $ref: '#/components/responses/InvalidRequestBody'
         401:
-          description: Invalid credentials
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiResponse'
-              example:
-                message: Invalid username or password
-                data: {}
+          $ref: '#/components/responses/InvalidCredentials'
         403:
-          description: User is not a FILKOM student
+          $ref: '#/components/responses/NotFilkomStudent'
+        429:
+          description: Too many login attempts
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiResponse'
               example:
-                message: only for FILKOM students
-                data:
-                  fakultas: Fakultas Ilmu Sosial dan Ilmu Politik
+                message: Too many login attempts. Please try again in 5 minutes.
         500:
-          description: Fail to authenticate to UB auth or fail to get user data or fail to generate token
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiResponse'
+          $ref: '#/components/responses/InternalServerError'
+        504:
+          $ref: '#/components/responses/Timeout'
   /hopes:
     post:
       tags:
         - hopes
       summary: Create a new hope
       requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                content:
-                  type: string
-                  description: The content of the hope
-              required:
-                - content
-            example:
-              content: This is a new hope
+        $ref: '#/components/requestBodies/HopeRequest'
       responses:
         201:
-          description: Successfully created a new hope
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/ApiResponse'
-                  - type: object
-                    properties:
-                      data:
-                        type: object
-                        properties:
-                          id:
-                            type: string
-                            format: uuid
-                            description: The UUID of the created hope
-              example:
-                message: hope created
-                data:
-                  id: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+          $ref: '#/components/responses/HopeCreated'
         400:
-          description: Invalid request body
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiResponse'
+          $ref: '#/components/responses/InvalidRequestBody'
+        429:
+          $ref: '#/components/responses/RateLimitExceeded'
         500:
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiResponse'
+          $ref: '#/components/responses/InternalServerError'
+        504:
+          $ref: '#/components/responses/Timeout'
     get:
       tags:
         - hopes
@@ -309,39 +388,15 @@ paths:
         - $ref: '#/components/parameters/Limit'
       responses:
         200:
-          description: Successfully retrieved hopes
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/ApiResponse'
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/HopeUser'
-              example:
-                message: hopes retrieved
-                data:
-                  - id: 3fa85f64-5717-4562-b3fc-2c963f66afa6
-                    content: This is a hope
-                    created_at: 2006-01-02T15:04:05+07:00
-                  - id: abcdef12-3456-7890-abcd-ef1234567890
-                    content: This is another hope
-                    created_at: 2004-01-01T14:03:04+07:00
+          $ref: '#/components/responses/HopesRetrieved'
         400:
-          description: Invalid query parameters
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiResponse'
+          $ref: '#/components/responses/InvalidRequestBody'
+        429:
+          $ref: '#/components/responses/RateLimitExceeded'
         500:
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiResponse'
+          $ref: '#/components/responses/InternalServerError'
+        504:
+          $ref: '#/components/responses/Timeout'
   /hopes/{id}:
     get:
       tags:
@@ -349,14 +404,7 @@ paths:
       summary: Retrieve a specific hope by its ID
       description: It will return only approved hopes.
       parameters:
-        - name: id
-          in: path
-          description: The UUID of the hope
-          required: true
-          example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/IdPath'
       responses:
         200:
           description: Successfully retrieved the hope
@@ -376,23 +424,19 @@ paths:
                   content: This is a hope
                   created_at: 2006-01-02T15:04:05+07:00
         400:
-          description: Invalid ID format
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiResponse'
+          $ref: '#/components/responses/InvalidRequestBody'
         404:
           description: Hope not found
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiResponse'
+        429:
+          $ref: '#/components/responses/RateLimitExceeded'
         500:
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiResponse'
+          $ref: '#/components/responses/InternalServerError'
+        504:
+          $ref: '#/components/responses/Timeout'
   /admin/hopes:
     get:
       tags:
@@ -438,17 +482,13 @@ paths:
                     created_at: 2002-02-02T13:02:03+07:00
                     updated_at: 2002-03-02T13:02:03+07:00
         400:
-          description: Invalid query parameters
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiResponse'
+          $ref: '#/components/responses/InvalidRequestBody'
+        429:
+          $ref: '#/components/responses/RateLimitExceeded'
         500:
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiResponse'
+          $ref: '#/components/responses/InternalServerError'
+        504:
+          $ref: '#/components/responses/Timeout'
   /admin/hopes/{id}:
     get:
       tags:
@@ -478,23 +518,19 @@ paths:
                   created_at: 2006-01-02T15:04:05+07:00
                   updated_at: 2006-01-02T15:04:05+07:00
         400:
-          description: Invalid ID format
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiResponse'
+          $ref: '#/components/responses/InvalidRequestBody'
         404:
           description: Hope not found
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiResponse'
+        429:
+          $ref: '#/components/responses/RateLimitExceeded'
         500:
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiResponse'
+          $ref: '#/components/responses/InternalServerError'
+        504:
+          $ref: '#/components/responses/Timeout'
     patch:
       tags:
         - admin
@@ -526,23 +562,19 @@ paths:
               schema:
                 $ref: '#/components/schemas/ApiResponse'
         400:
-          description: Invalid ID format or request body
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiResponse'
+          $ref: '#/components/responses/InvalidRequestBody'
         404:
           description: Hope not found
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiResponse'
+        429:
+          $ref: '#/components/responses/RateLimitExceeded'
         500:
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiResponse'
+          $ref: '#/components/responses/InternalServerError'
+        504:
+          $ref: '#/components/responses/Timeout'
     delete:
       tags:
         - admin
@@ -558,42 +590,26 @@ paths:
               schema:
                 $ref: '#/components/schemas/ApiResponse'
         400:
-          description: Invalid ID format
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiResponse'
+          $ref: '#/components/responses/InvalidRequestBody'
         404:
           description: Hope not found
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiResponse'
+        429:
+          $ref: '#/components/responses/RateLimitExceeded'
         500:
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiResponse'
+          $ref: '#/components/responses/InternalServerError'
+        504:
+          $ref: '#/components/responses/Timeout'
   /whispers:
     post:
       tags:
         - whispers
       summary: Create a new whisper
       requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                content:
-                  type: string
-                  description: The content of the whisper
-              required:
-                - content
-            example:
-              content: This is a new whisper
+        $ref: '#/components/requestBodies/WhisperRequest'
       responses:
         201:
           description: Successfully created a new whisper
@@ -616,17 +632,13 @@ paths:
                 data:
                   id: 3fa85f64-5717-4562-b3fc-2c963f66afa6
         400:
-          description: Invalid request body
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiResponse'
+          $ref: '#/components/responses/InvalidRequestBody'
+        429:
+          $ref: '#/components/responses/RateLimitExceeded'
         500:
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiResponse'
+          $ref: '#/components/responses/InternalServerError'
+        504:
+          $ref: '#/components/responses/Timeout'
     get:
       tags:
         - whispers
@@ -665,17 +677,13 @@ paths:
                     content: This is another whisper
                     created_at: 2004-01-01T14:03:04+07:00
         400:
-          description: Invalid query parameters
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiResponse'
+          $ref: '#/components/responses/InvalidRequestBody'
+        429:
+          $ref: '#/components/responses/RateLimitExceeded'
         500:
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiResponse'
+          $ref: '#/components/responses/InternalServerError'
+        504:
+          $ref: '#/components/responses/Timeout'
   /whispers/{id}:
     get:
       tags:
@@ -683,14 +691,7 @@ paths:
       summary: Retrieve a specific whisper by its ID
       description: It will return only approved whispers.
       parameters:
-        - name: id
-          in: path
-          description: The UUID of the whisper
-          required: true
-          example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/IdPath'
       responses:
         200:
           description: Successfully retrieved the whisper
@@ -710,23 +711,19 @@ paths:
                   content: This is a whisper
                   created_at: 2006-01-02T15:04:05+07:00
         400:
-          description: Invalid ID format
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiResponse'
+          $ref: '#/components/responses/InvalidRequestBody'
         404:
           description: Whisper not found
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiResponse'
+        429:
+          $ref: '#/components/responses/RateLimitExceeded'
         500:
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiResponse'
+          $ref: '#/components/responses/InternalServerError'
+        504:
+          $ref: '#/components/responses/Timeout'
   /admin/whispers:
     get:
       tags:
@@ -772,17 +769,13 @@ paths:
                     created_at: 2002-02-02T13:02:03+07:00
                     updated_at: 2002-03-02T13:02:03+07:00
         400:
-          description: Invalid query parameters
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiResponse'
+          $ref: '#/components/responses/InvalidRequestBody'
+        429:
+          $ref: '#/components/responses/RateLimitExceeded'
         500:
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiResponse'
+          $ref: '#/components/responses/InternalServerError'
+        504:
+          $ref: '#/components/responses/Timeout'
   /admin/whispers/{id}:
     get:
       tags:
@@ -812,23 +805,19 @@ paths:
                   created_at: 2006-01-02T15:04:05+07:00
                   updated_at: 2006-01-02T15:04:05+07:00
         400:
-          description: Invalid ID format
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiResponse'
+          $ref: '#/components/responses/InvalidRequestBody'
         404:
           description: Whisper not found
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiResponse'
+        429:
+          $ref: '#/components/responses/RateLimitExceeded'
         500:
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiResponse'
+          $ref: '#/components/responses/InternalServerError'
+        504:
+          $ref: '#/components/responses/Timeout'
     patch:
       tags:
         - admin
@@ -860,23 +849,19 @@ paths:
               schema:
                 $ref: '#/components/schemas/ApiResponse'
         400:
-          description: Invalid ID format or request body
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiResponse'
+          $ref: '#/components/responses/InvalidRequestBody'
         404:
           description: Whisper not found
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiResponse'
+        429:
+          $ref: '#/components/responses/RateLimitExceeded'
         500:
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiResponse'
+          $ref: '#/components/responses/InternalServerError'
+        504:
+          $ref: '#/components/responses/Timeout'
     delete:
       tags:
         - admin
@@ -892,20 +877,16 @@ paths:
               schema:
                 $ref: '#/components/schemas/ApiResponse'
         400:
-          description: Invalid ID format
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiResponse'
+          $ref: '#/components/responses/InvalidRequestBody'
         404:
           description: Whisper not found
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiResponse'
+        429:
+          $ref: '#/components/responses/RateLimitExceeded'
         500:
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiResponse'
+          $ref: '#/components/responses/InternalServerError'
+        504:
+          $ref: '#/components/responses/Timeout'
