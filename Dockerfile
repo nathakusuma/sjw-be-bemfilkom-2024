@@ -17,7 +17,7 @@ WORKDIR /root/
 
 COPY --from=builder /app/main .
 COPY --from=builder /app/web ./web
-COPY --from=builder /app/docs/api ./docs/api
+COPY --from=builder /app/api ./api
 
 EXPOSE 8080
 
