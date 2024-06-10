@@ -23,7 +23,8 @@ func (hwt HopeWhisperType) Singular() string {
 }
 
 type CreateHopeWhisperRequest struct {
-	Content string `json:"content" binding:"required,max=2000,min=1"`
+	Content  string `json:"content" binding:"required,max=2000,min=1"`
+	IsPublic bool   `json:"is_public"`
 }
 
 type CreateHopeWhisperResponse struct {
@@ -44,6 +45,7 @@ type FindHopeWhisperResponse struct {
 type FindHopeWhisperAsAdminResponse struct {
 	FindHopeWhisperResponse
 	IsApproved *bool  `json:"is_approved"`
+	IsPublic   bool   `json:"is_public"`
 	UpdatedAt  string `json:"updated_at"`
 }
 

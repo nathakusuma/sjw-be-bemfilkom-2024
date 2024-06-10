@@ -31,7 +31,7 @@ func (h *hopeWhisperHandler) Create(hwType model.HopeWhisperType) gin.HandlerFun
 			return
 		}
 
-		res := h.s.Create(hwType, req.Content)
+		res := h.s.Create(hwType, req.Content, req.IsPublic)
 		res.Send(ctx)
 	}
 }

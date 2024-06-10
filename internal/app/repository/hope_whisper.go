@@ -9,7 +9,7 @@ import (
 )
 
 type IHopeWhisperRepository interface {
-	Create(hwType model.HopeWhisperType, content string) (uuid.UUID, error)
+	Create(hwType model.HopeWhisperType, content string, isPublic bool) (uuid.UUID, error)
 	FindByLazyLoad(hwType model.HopeWhisperType, createdAtPivot time.Time, idPivot uuid.UUID, isPrev bool, limit int, isAdmin bool) ([]entity.HopeWhisper, error)
 	FindByID(hwType model.HopeWhisperType, id uuid.UUID) (entity.HopeWhisper, error)
 	Update(hwType model.HopeWhisperType, hopeWhisper entity.HopeWhisper) error
@@ -24,10 +24,11 @@ func NewHopeWhisperRepository(db *gorm.DB) IHopeWhisperRepository {
 	return &hopeWhisperRepository{db: db}
 }
 
-func (r *hopeWhisperRepository) Create(hwType model.HopeWhisperType, content string) (uuid.UUID, error) {
+func (r *hopeWhisperRepository) Create(hwType model.HopeWhisperType, content string, isPublic bool) (uuid.UUID, error) {
 	hopeWhisper := entity.HopeWhisper{
-		ID:      uuid.New(),
-		Content: content,
+		ID:       uuid.New(),
+		Content:  content,
+		IsPublic: isPublic,
 	}
 	if err := r.db.Table(hwType.String()).Create(&hopeWhisper).Error; err != nil {
 		return uuid.Nil, err
@@ -41,7 +42,7 @@ func (r *hopeWhisperRepository) FindByLazyLoad(hwType model.HopeWhisperType, cre
 
 	tx := r.db.Table(hwType.String())
 	if !isAdmin {
-		tx = tx.Where("is_approved = ?", true)
+		tx = tx.Where("is_approved = ? AND is_public = ?", true, true)
 	}
 
 	if (createdAtPivot != time.Time{} && idPivot != uuid.Nil) {

@@ -72,6 +72,12 @@ components:
     WhisperAdmin:
       allOf:
         - $ref: '#/components/schemas/HopeAdmin'
+        - type: object
+          properties:
+            is_public:
+              type: boolean
+              description: Visibility status of the whisper
+              example: true
     User:
       type: object
       properties:
@@ -298,10 +304,15 @@ components:
               content:
                 type: string
                 description: The content of the whisper
+              is_public:
+                type: boolean
+                description: The visibility status of the whisper
             required:
               - content
+              - is_public
           example:
             content: This is a new whisper
+            is_public: true
 paths:
   /auth/login:
     post:

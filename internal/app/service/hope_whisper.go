@@ -18,7 +18,7 @@ type hopeWhisperService struct {
 }
 
 type IHopeWhisperService interface {
-	Create(hwType model.HopeWhisperType, content string) response.ApiResponse
+	Create(hwType model.HopeWhisperType, content string, isPublic bool) response.ApiResponse
 	FindByLazyLoad(hwType model.HopeWhisperType, createdAtPivot, idPivot, direction, limitStr string, isAdmin bool) response.ApiResponse
 	FindByID(hwType model.HopeWhisperType, idStr string, isAdmin bool) response.ApiResponse
 	Update(hwType model.HopeWhisperType, idStr string, req model.UpdateHopeWhisperRequest) response.ApiResponse
@@ -29,8 +29,11 @@ func NewHopeWhisperService(r repository.IHopeWhisperRepository) IHopeWhisperServ
 	return &hopeWhisperService{r: r}
 }
 
-func (s *hopeWhisperService) Create(hwType model.HopeWhisperType, content string) response.ApiResponse {
-	id, err := s.r.Create(hwType, content)
+func (s *hopeWhisperService) Create(hwType model.HopeWhisperType, content string, isPublic bool) response.ApiResponse {
+	if hwType == model.HopeCorner {
+		isPublic = true
+	}
+	id, err := s.r.Create(hwType, content, isPublic)
 	if err != nil {
 		return response.NewApiResponse(500, "fail to create "+hwType.Singular(), err)
 	}
@@ -99,10 +102,12 @@ func (s *hopeWhisperService) FindByLazyLoad(hwType model.HopeWhisperType, create
 			hopesWhispers[i] = model.FindHopeWhisperAsAdminResponse{
 				FindHopeWhisperResponse: res,
 				IsApproved:              hopeWhisper.IsApproved,
+				IsPublic:                hopeWhisper.IsPublic,
 				UpdatedAt:               hopeWhisper.UpdatedAt.Format(time.RFC3339),
 			}
+		} else {
+			hopesWhispers[i] = res
 		}
-		hopesWhispers[i] = res
 	}
 
 	return response.NewApiResponse(200, hwType.String()+" retrieved", hopesWhispers)
@@ -122,8 +127,8 @@ func (s *hopeWhisperService) FindByID(hwType model.HopeWhisperType, idStr string
 		return response.NewApiResponse(500, "fail to get "+hwType.Singular(), err)
 	}
 
-	if !isAdmin && (hopeWhisperRaw.IsApproved == nil || !*hopeWhisperRaw.IsApproved) {
-		return response.NewApiResponse(403, hwType.Singular()+" not approved yet", gin.H{})
+	if !isAdmin && (hopeWhisperRaw.IsApproved == nil || !*hopeWhisperRaw.IsApproved || !hopeWhisperRaw.IsPublic) {
+		return response.NewApiResponse(403, hwType.Singular()+" is either private or not approved yet", gin.H{})
 	}
 
 	var hopeWhisper any
@@ -135,6 +140,8 @@ func (s *hopeWhisperService) FindByID(hwType model.HopeWhisperType, idStr string
 		hopeWhisper = model.FindHopeWhisperAsAdminResponse{
 			FindHopeWhisperResponse: res,
 			IsApproved:              hopeWhisperRaw.IsApproved,
+			IsPublic:                hopeWhisperRaw.IsPublic,
+			UpdatedAt:               hopeWhisperRaw.UpdatedAt.Format(time.RFC3339),
 		}
 	} else {
 		hopeWhisper = res
