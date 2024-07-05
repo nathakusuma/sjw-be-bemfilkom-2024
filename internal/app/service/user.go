@@ -10,6 +10,7 @@ import (
 	"github.com/bem-filkom/sjw-be-2024/internal/pkg/model"
 	"github.com/bem-filkom/sjw-be-2024/internal/pkg/response"
 	"github.com/gin-gonic/gin"
+	jwt2 "github.com/golang-jwt/jwt/v5"
 	"gorm.io/gorm"
 )
 
@@ -45,22 +46,36 @@ func (s *userService) Login(username, password string) response.ApiResponse {
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			user = entity.User{
-				Nim:      studentDetails.NIM,
-				Email:    studentDetails.Email,
-				FullName: studentDetails.FullName,
-				Role:     "user",
+				Nim:          studentDetails.NIM,
+				Email:        studentDetails.Email,
+				FullName:     studentDetails.FullName,
+				ProgramStudi: studentDetails.ProgramStudi,
+				Role:         "user",
 			}
 		} else {
 			return response.NewApiResponse(500, "fail to get user data", err)
 		}
 	}
 
-	token, err := s.jwt.Create(user)
+	angkatan := "20" + studentDetails.NIM[0:2]
+	profilePictureURL := fmt.Sprintf("https://siakad.ub.ac.id/dirfoto/foto/foto_%s/%s.jpg", angkatan, studentDetails.NIM)
+
+	claims := jwt.Claims{
+		Role:           user.Role,
+		FullName:       user.FullName,
+		Email:          user.Email,
+		ProgramStudi:   user.ProgramStudi,
+		Angkatan:       angkatan,
+		ProfilePicture: profilePictureURL,
+		RegisteredClaims: jwt2.RegisteredClaims{
+			Subject: studentDetails.NIM,
+		},
+	}
+
+	token, err := s.jwt.Create(&claims)
 	if err != nil {
 		return response.NewApiResponse(500, "fail to generate token", err)
 	}
-
-	angkatan := "20" + studentDetails.NIM[0:2]
 
 	return response.NewApiResponse(200, "successfully logged in", model.LoginResponse{
 		Token:          token,
@@ -70,6 +85,6 @@ func (s *userService) Login(username, password string) response.ApiResponse {
 		Role:           user.Role,
 		Angkatan:       angkatan,
 		ProgramStudi:   studentDetails.ProgramStudi,
-		ProfilePicture: fmt.Sprintf("https://siakad.ub.ac.id/dirfoto/foto/foto_%s/%s.jpg", angkatan, studentDetails.NIM),
+		ProfilePicture: profilePictureURL,
 	})
 }
