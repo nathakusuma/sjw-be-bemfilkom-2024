@@ -1,7 +1,6 @@
 package jwt
 
 import (
-	"github.com/bem-filkom/sjw-be-2024/internal/pkg/entity"
 	"github.com/golang-jwt/jwt/v5"
 	"log"
 	"time"
@@ -14,7 +13,11 @@ type JWT struct {
 
 type Claims struct {
 	jwt.RegisteredClaims
-	Role string `json:"role"`
+	Role         string `json:"role"`
+	FullName     string `json:"full_name"`
+	Email        string `json:"email"`
+	ProgramStudi string `json:"program_studi"`
+	Angkatan     string `json:"angkatan"`
 }
 
 func NewJWT(secretKey string, ttlString string) JWT {
@@ -29,14 +32,8 @@ func NewJWT(secretKey string, ttlString string) JWT {
 	}
 }
 
-func (j *JWT) Create(user entity.User) (string, error) {
-	claims := Claims{
-		RegisteredClaims: jwt.RegisteredClaims{
-			Subject:   user.Nim,
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(j.TTL)),
-		},
-		Role: user.Role,
-	}
+func (j *JWT) Create(claims *Claims) (string, error) {
+	claims.RegisteredClaims.ExpiresAt = jwt.NewNumericDate(time.Now().Add(j.TTL))
 
 	unsignedJWT := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	signedJWT, err := unsignedJWT.SignedString(j.SecretKey)
