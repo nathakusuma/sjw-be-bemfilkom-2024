@@ -12,6 +12,7 @@ type IHopeWhisperRepository interface {
 	Create(hwType model.HopeWhisperType, content string, isPublic bool) (uuid.UUID, error)
 	FindByLazyLoad(hwType model.HopeWhisperType, createdAtPivot time.Time, idPivot uuid.UUID, isPrev bool, limit int, isAdmin bool) ([]entity.HopeWhisper, error)
 	FindByID(hwType model.HopeWhisperType, id uuid.UUID) (entity.HopeWhisper, error)
+	FindAllApproved(hwType model.HopeWhisperType) ([]entity.HopeWhisper, error)
 	Update(hwType model.HopeWhisperType, hopeWhisper entity.HopeWhisper) error
 	Delete(hwType model.HopeWhisperType, id uuid.UUID) error
 }
@@ -65,6 +66,20 @@ func (r *hopeWhisperRepository) FindByLazyLoad(hwType model.HopeWhisperType, cre
 	}
 
 	return hopes, nil
+}
+
+// FindAllApproved Not a good practice to return all data, so I limit it to 100
+func (r *hopeWhisperRepository) FindAllApproved(hwType model.HopeWhisperType) ([]entity.HopeWhisper, error) {
+	var hopeWhispers []entity.HopeWhisper
+	tx := r.db.Table(hwType.String()).
+		Where("is_approved = ? AND is_public = ?", true, true).
+		Order("created_at DESC, id ASC").
+		Limit(100).
+		Find(&hopeWhispers)
+	if err := tx.Error; err != nil {
+		return nil, err
+	}
+	return hopeWhispers, nil
 }
 
 func (r *hopeWhisperRepository) FindByID(hwType model.HopeWhisperType, id uuid.UUID) (entity.HopeWhisper, error) {

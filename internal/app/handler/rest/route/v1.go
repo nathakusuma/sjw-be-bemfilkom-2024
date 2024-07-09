@@ -63,6 +63,7 @@ func (c *Config) hopeCornerRoute(r *gin.RouterGroup) {
 	hopes.Use(DefaultRateLimiter)
 	hopes.GET("/:id", c.HopeWhisperHandler.FindByID(model.HopeCorner, false))
 	hopes.GET("", c.HopeWhisperHandler.FindByLazyLoad(model.HopeCorner, false))
+	hopes.GET("/all", c.HopeWhisperHandler.FindAllApproved(model.HopeCorner))
 }
 
 func (c *Config) whisperWallRoute(r *gin.RouterGroup) {
@@ -71,6 +72,7 @@ func (c *Config) whisperWallRoute(r *gin.RouterGroup) {
 	whispers.Use(DefaultRateLimiter)
 	whispers.GET("/:id", c.HopeWhisperHandler.FindByID(model.WhisperWall, false))
 	whispers.GET("", c.HopeWhisperHandler.FindByLazyLoad(model.WhisperWall, false))
+	whispers.GET("/all", c.HopeWhisperHandler.FindAllApproved(model.WhisperWall))
 }
 
 func (c *Config) adminRoute(r *gin.RouterGroup) {

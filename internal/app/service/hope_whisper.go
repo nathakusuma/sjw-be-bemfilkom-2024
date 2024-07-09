@@ -20,6 +20,7 @@ type hopeWhisperService struct {
 type IHopeWhisperService interface {
 	Create(hwType model.HopeWhisperType, content string, isPublic bool) response.ApiResponse
 	FindByLazyLoad(hwType model.HopeWhisperType, createdAtPivot, idPivot, direction, limitStr string, isAdmin bool) response.ApiResponse
+	FindAllApproved(hwType model.HopeWhisperType) response.ApiResponse
 	FindByID(hwType model.HopeWhisperType, idStr string, isAdmin bool) response.ApiResponse
 	Update(hwType model.HopeWhisperType, idStr string, req model.UpdateHopeWhisperRequest) response.ApiResponse
 	Delete(hwType model.HopeWhisperType, idStr string) response.ApiResponse
@@ -108,6 +109,26 @@ func (s *hopeWhisperService) FindByLazyLoad(hwType model.HopeWhisperType, create
 		} else {
 			hopesWhispers[i] = res
 		}
+	}
+
+	return response.NewApiResponse(200, hwType.String()+" retrieved", hopesWhispers)
+}
+
+// FindAllApproved Not a good practice to return all data
+func (s *hopeWhisperService) FindAllApproved(hwType model.HopeWhisperType) response.ApiResponse {
+	hopesWhispersRaw, err := s.r.FindAllApproved(hwType)
+	if err != nil {
+		return response.NewApiResponse(500, "fail to get "+hwType.String(), err)
+	}
+
+	hopesWhispers := make([]any, len(hopesWhispersRaw))
+	for i, hopeWhisper := range hopesWhispersRaw {
+		res := model.FindHopeWhisperResponse{
+			ID:        hopeWhisper.ID,
+			Content:   hopeWhisper.Content,
+			CreatedAt: hopeWhisper.CreatedAt.Format(time.RFC3339),
+		}
+		hopesWhispers[i] = res
 	}
 
 	return response.NewApiResponse(200, hwType.String()+" retrieved", hopesWhispers)

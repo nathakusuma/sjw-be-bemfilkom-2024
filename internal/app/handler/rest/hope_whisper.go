@@ -14,6 +14,7 @@ type hopeWhisperHandler struct {
 type IHopeWhisperHandler interface {
 	Create(hwType model.HopeWhisperType) gin.HandlerFunc
 	FindByLazyLoad(hwType model.HopeWhisperType, isAdmin bool) gin.HandlerFunc
+	FindAllApproved(hwType model.HopeWhisperType) gin.HandlerFunc
 	FindByID(hwType model.HopeWhisperType, isAdmin bool) gin.HandlerFunc
 	Update(hwType model.HopeWhisperType) gin.HandlerFunc
 	Delete(hwType model.HopeWhisperType) gin.HandlerFunc
@@ -44,6 +45,14 @@ func (h *hopeWhisperHandler) FindByLazyLoad(hwType model.HopeWhisperType, isAdmi
 		limit := ctx.Query("limit")
 
 		res := h.s.FindByLazyLoad(hwType, createdAtPivot, idPivot, direction, limit, isAdmin)
+		res.Send(ctx)
+	}
+}
+
+// FindAllApproved Not a good practice to return all data
+func (h *hopeWhisperHandler) FindAllApproved(hwType model.HopeWhisperType) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		res := h.s.FindAllApproved(hwType)
 		res.Send(ctx)
 	}
 }
